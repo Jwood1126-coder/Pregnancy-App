@@ -82,7 +82,7 @@
  * }} ScreenContext
  */
 
-/** @typedef {'today'|'size'} TabId */
+/** @typedef {'today'|'size'|'guide'} TabId */
 
 /** Schema version of the persisted `Settings` object. */
 export const SCHEMA_VERSION = 1;

@@ -735,6 +735,365 @@ input[type='date'].input--empty::-webkit-datetime-edit {
 
 .silhouette { fill: var(--accent); }
 
+/* --- Evidence badges ----------------------------------------------------- */
+
+/* Three strengths, three quiet treatments. Nothing here is ever alarming: the
+   badge reports how sure the field is, and a parent must never read "we are
+   less sure about this" as "something is wrong". So confidence descends by
+   *emphasis* — filled sage, filled neutral, outline — and never by hue. */
+
+.evidence {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+  padding: 3px 9px;
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: 1.35;
+  white-space: nowrap;
+}
+
+.evidence--strong { background: var(--accent-soft); color: var(--accent-ink); }
+
+.evidence--good {
+  background: color-mix(in srgb, var(--ink) 7%, transparent);
+  color: var(--ink-soft);
+}
+
+.evidence--early {
+  background: transparent;
+  color: var(--ink-soft);
+  /* An inset ring, not a border: the pill keeps the same height as its two
+     filled siblings, so a column of mixed badges has one baseline. */
+  box-shadow: inset 0 0 0 1px var(--hairline-strong);
+}
+
+/* --- Disclosure (tap to expand in place) --------------------------------- */
+
+/* `grid-template-rows: 0fr → 1fr` animates to the content's real height with
+   no measuring and no max-height guess that clips long text. Where a browser
+   can't interpolate it, the panel simply appears — never wrong, only less
+   smooth. Every combinator below is a child combinator: these nest (rows
+   inside a folded section), and a descendant selector would open the inner
+   ones along with the outer. */
+
+.disclose__toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  padding: 11px 0;
+  background: none;
+  border: 0;
+  text-align: left;
+  cursor: pointer;
+}
+
+.disclose__chev {
+  display: inline-flex;
+  flex: none;
+  margin-left: auto;
+  color: var(--ink-soft);
+  opacity: 0.7;
+  transition: transform var(--dur) var(--ease);
+}
+
+.disclose--open > .disclose__toggle > .disclose__chev { transform: rotate(90deg); }
+
+.disclose__panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--dur) var(--ease);
+}
+
+.disclose--open > .disclose__panel { grid-template-rows: 1fr; }
+
+.disclose__inner {
+  overflow: hidden;
+  min-height: 0;
+  opacity: 0;
+  /* Collapsed content leaves the accessibility tree too, once the fold has
+     finished — hence the delayed visibility switch. */
+  visibility: hidden;
+  transition: opacity var(--dur) var(--ease), visibility 0s linear var(--dur);
+}
+
+.disclose--open > .disclose__panel > .disclose__inner {
+  opacity: 1;
+  visibility: visible;
+  transition-delay: 0s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .disclose__inner { transition-delay: 0s; }
+}
+
+/* --- Guide --------------------------------------------------------------- */
+
+.guide-section { display: flex; flex-direction: column; gap: 10px; }
+
+/* A grouped-list header, sitting on the page rather than inside a card. */
+.guide-section__title { padding: 4px 4px 0; }
+
+/* Right now — the only thing on this screen that is open by default. */
+
+.guide-now__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.guide-now__weeks {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.guide-now__title {
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  text-wrap: balance;
+}
+
+.guide-now__developing {
+  font-size: 16px;
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+
+/* The concrete move, in the same accent panel Today uses for food safety —
+   advice looks like advice everywhere in the app. */
+
+.guide-action {
+  margin-top: 2px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--accent-soft);
+}
+
+.guide-action__label {
+  display: block;
+  margin-bottom: 2px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--accent-ink);
+}
+
+.guide-action__text { font-size: 15px; line-height: 1.5; text-wrap: pretty; }
+
+/* The honest word about the evidence: present, and never louder than that. */
+.guide-note {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  text-wrap: pretty;
+}
+
+.guide-quiet__text { font-size: 16px; line-height: 1.5; text-wrap: pretty; }
+.guide-quiet__next { font-size: 14px; color: var(--ink-soft); }
+.guide-quiet__btn { align-self: flex-start; margin-left: -12px; }
+
+/* Rows */
+
+.guide-rows { display: flex; flex-direction: column; }
+
+/* Raised only when the group sits directly on the page; inside a card it is
+   already on a surface and a second one would read as a card in a card. */
+.guide-rows--raised {
+  background: var(--card);
+  border: 1px solid var(--edge);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 0 18px;
+}
+
+.guide-row + .guide-row { border-top: 1px solid var(--hairline); }
+
+/* The standard iOS cell: title on its own line, the small facts under it.
+   Three columns in a 350 px phone left titles a 110 px gutter to wrap in. */
+.guide-row__head {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.guide-row__meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.guide-row__weeks {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.guide-row__title {
+  min-width: 0;
+  font-size: 16px;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  text-wrap: pretty;
+}
+
+/* The week you are actually in, marked the way iOS marks a selected row: a
+   sage rule down the edge and a little more weight. No fill, no colour on the
+   text — this is a "you are here", not a warning. */
+.guide-row--current > .disclose__toggle {
+  position: relative;
+  padding-left: 11px;
+}
+
+.guide-row--current > .disclose__toggle::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 12px;
+  bottom: 12px;
+  width: 3px;
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+}
+
+.guide-row--current .guide-row__title { font-weight: 600; }
+
+.guide-row .disclose__body { padding-bottom: 14px; }
+
+.guide-row .guide-detail {
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--ink);
+  text-wrap: pretty;
+}
+
+.guide-row .guide-detail + .guide-action { margin-top: 10px; }
+.guide-row .guide-action + .guide-note { margin-top: 8px; }
+.guide-row .guide-detail__ev { margin-bottom: 8px; }
+
+.guide-row--text .guide-row__title { font-size: 17px; }
+
+/* "Where this comes from" — the folded evidence note on a full card. */
+
+.guide-why { margin-top: -6px; }
+.guide-why > .disclose__toggle { min-height: 44px; padding: 10px 0 8px; }
+
+.guide-why__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+/* Sized to the 13 px label beside it, and pulled in tight: this reads as a
+   link at the foot of a card, not as another full-width row. */
+.guide-why .disclose__chev { margin-left: 7px; opacity: 0.55; }
+.guide-why .disclose__chev svg { width: 7px; height: 11px; }
+.guide-why .disclose__body { padding-bottom: 2px; }
+
+/* Folded sections */
+
+.guide-fold { padding-top: 5px; padding-bottom: 5px; }
+.guide-fold__toggle { padding: 11px 0; }
+.guide-fold .disclose__body { padding-top: 4px; }
+
+/* A door, not a heading — so it reads in sentence case at reading size, and
+   fits on one line where tracked-out caps needed two. */
+.guide-fold__title {
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.3;
+  color: var(--ink);
+  text-wrap: pretty;
+}
+
+.guide-fold__count {
+  margin-left: auto;
+  padding-left: 10px;
+  font-size: 15px;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The count takes the free space; the chevron just follows it. */
+.guide-fold__toggle .disclose__chev { margin-left: 8px; }
+
+.guide-group + .guide-group { margin-top: 16px; }
+
+.guide-group__title {
+  padding: 4px 0 2px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--accent-ink);
+}
+
+.guide-legend {
+  padding: 8px 6px 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+  text-wrap: pretty;
+}
+
+.guide-legend__term { font-weight: 600; color: var(--ink); }
+
+/* --- Today's link into the Guide ----------------------------------------- */
+
+/* One item, not a stack — but not one physical line either: with the badge and
+   chevron taking their share of a 350 px phone, a real 45-character window
+   title had 13 characters left before the ellipsis ("Blood volum…"). The label
+   moves above the title, and the title gets two lines to land in. */
+
+.today-guide { padding-top: 13px; padding-bottom: 13px; }
+
+.today-guide__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.today-guide__text { flex: 1 1 auto; min-width: 0; }
+
+.today-guide__label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--accent-ink);
+}
+
+.today-guide__title {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  margin-top: 2px;
+  font-size: 15px;
+  line-height: 1.35;
+  color: var(--ink);
+  text-wrap: pretty;
+}
+.today-guide__go { flex: none; display: inline-flex; color: var(--ink-soft); opacity: 0.6; }
+
 /* --- Welcome ------------------------------------------------------------- */
 
 /* The shell owns the height: `#app` is already a full-viewport flex column and

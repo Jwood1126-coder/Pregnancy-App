@@ -43,6 +43,7 @@ import {
   noDueDateCard
 } from '../components/today/edge.js';
 import { attachSwipe } from '../components/today/swipe.js';
+import { guideLinkCard } from '../components/guide/todayLink.js';
 
 /** @typedef {import('../lib/types.js').ScreenContext} ScreenContext */
 /** @typedef {import('../lib/types.js').Week} Week */
@@ -312,6 +313,17 @@ export function render(ctx) {
         })
       );
     }
+
+    /* One line, straight under the size card: what this week is critical for,
+       and a door into the Guide. It renders `null` on the weeks that have
+       nothing dated near them, which is most of them. */
+    cards.push(
+      guideLinkCard({
+        week,
+        browsing: browseWeek !== null,
+        onOpen: () => ctx.go('guide')
+      })
+    );
 
     if (!content) {
       cards.push(missingWeekCard({ week }));

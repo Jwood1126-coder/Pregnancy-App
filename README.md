@@ -4,7 +4,9 @@ A private, iPhone-first pregnancy companion for our family — week-by-week guid
 
 ## Status
 
-**Phase 1 is built.** The week engine, Today screen, true-size Size screen with calibration, Settings, the PWA shell, and all 39 weeks of content (weeks 4–42) ship in [`app/`](./app). The product spec lives in [`MASTER_PROMPT.md`](./MASTER_PROMPT.md) and the engineering plan in [`docs/PLAN.md`](./docs/PLAN.md).
+**Phase 1 is built.** The week engine, Today screen, true-size Size screen with calibration, the Guide, Settings, the PWA shell, and all 39 weeks of content (weeks 4–42) ship in [`app/`](./app). The product spec lives in [`MASTER_PROMPT.md`](./MASTER_PROMPT.md) and the engineering plan in [`docs/PLAN.md`](./docs/PLAN.md).
+
+- **Guide** — what your baby is building this week and the one food or habit move that helps, each graded for how solid the evidence actually is.
 
 ## Run it
 
@@ -20,7 +22,7 @@ Handy while developing (each is applied once on load, then stripped from the add
 
 ## Roadmap
 
-- **Phase 1 — the core:** week engine · Today screen · true-size view with calibration · all weekly content (weeks 4–42) · installable PWA shell
+- **Phase 1 — the core:** week engine · Today screen · true-size view with calibration · Guide · all weekly content (weeks 4–42) · installable PWA shell
 - **Phase 2 — memories:** bump-photo journal · document uploads · backup export/import
 - **Phase 3 — logistics:** appointments · suggested prenatal schedule · calendar (.ics) export
 

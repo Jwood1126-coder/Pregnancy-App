@@ -20,6 +20,13 @@ import { SIZE_TABLE } from '../app/js/data/sizes.js';
 import { RED_FLAGS_TEXT } from '../app/js/components/today/redFlags.js';
 import { DISCLAIMER_TEXT } from '../app/js/components/disclaimer.js';
 import { silhouetteForWeek, SILHOUETTES } from '../app/js/features/size/silhouettes.js';
+import {
+  CRITICAL_WINDOWS,
+  ALWAYS_AVOID,
+  GENERAL_TIPS,
+  windowsForWeek
+} from '../app/js/data/guide.js';
+import { EVIDENCE_LABEL, evidenceKey } from '../app/js/components/guide/evidence.js';
 import { MIN_CONTENT_WEEK, MAX_CONTENT_WEEK, trimesterOf } from '../app/js/lib/weekMath.js';
 
 import { weeks04to12 } from '../app/js/data/weeks/weeks04to12.js';
@@ -465,4 +472,187 @@ test('silhouette ranges tile weeks 4–42 without gaps or overlaps', () => {
   }
   const ids = new Set(ordered.map((s) => s.id));
   assert.equal(ids.size, ordered.length, 'silhouette ids must be unique');
+});
+
+/* -------------------------------------------------------------------- guide */
+
+/**
+ * Guide data gates. The Guide's whole promise is calibrated honesty — "what
+ * matters when, and how sure we are" — so its data has to be structurally
+ * sound (unique ids, real week ranges, a valid grade on every entry) and free
+ * of the borrowed precision that makes soft evidence look hard.
+ */
+
+/** Every graded Guide entry, flattened with the set it came from. */
+const GUIDE_ENTRIES = [
+  ...CRITICAL_WINDOWS.map((e) => ['CRITICAL_WINDOWS', e]),
+  ...ALWAYS_AVOID.map((e) => ['ALWAYS_AVOID', e]),
+  ...GENERAL_TIPS.map((e) => ['GENERAL_TIPS', e])
+];
+
+test('guide ids are present and globally unique', () => {
+  const seen = new Map();
+  for (const [set, entry] of GUIDE_ENTRIES) {
+    assert.ok(
+      typeof entry.id === 'string' && /^[a-z0-9]+(-[a-z0-9]+)*$/.test(entry.id),
+      `${set}: id "${entry.id}" must be a non-empty kebab-case string`
+    );
+    assert.ok(!seen.has(entry.id), `duplicate guide id "${entry.id}" (${seen.get(entry.id)} and ${set})`);
+    seen.set(entry.id, set);
+  }
+  assert.equal(seen.size, GUIDE_ENTRIES.length);
+});
+
+test('every critical window covers a real span inside weeks 4–42', () => {
+  for (const w of CRITICAL_WINDOWS) {
+    assert.ok(Array.isArray(w.weeks) && w.weeks.length === 2, `${w.id}: weeks must be [start, end]`);
+    const [start, end] = w.weeks;
+    for (const [name, value] of [['start', start], ['end', end]]) {
+      assert.ok(Number.isInteger(value), `${w.id}: ${name} week must be an integer, got ${value}`);
+      assert.ok(
+        value >= MIN_CONTENT_WEEK && value <= MAX_CONTENT_WEEK,
+        `${w.id}: ${name} week ${value} is outside ${MIN_CONTENT_WEEK}–${MAX_CONTENT_WEEK}`
+      );
+    }
+    assert.ok(start <= end, `${w.id}: start week ${start} must not be after end week ${end}`);
+  }
+});
+
+test('every guide entry carries a valid evidence grade', () => {
+  const grades = Object.keys(EVIDENCE_LABEL);
+  for (const [set, entry] of GUIDE_ENTRIES) {
+    assert.ok(
+      grades.includes(entry.evidence),
+      `${set} → ${entry.id}: evidence "${entry.evidence}" is not one of ${grades.join(', ')}`
+    );
+  }
+});
+
+test('an unknown evidence grade fails safe to the weakest tier', () => {
+  /* The badge must never overstate on a typo: understate, never overstate. */
+  for (const bad of [undefined, null, '', 'STRONG', 'excellent', 42, {}]) {
+    assert.equal(evidenceKey(bad), 'early', `evidenceKey(${JSON.stringify(bad)}) must fail safe`);
+  }
+  for (const good of Object.keys(EVIDENCE_LABEL)) {
+    assert.equal(evidenceKey(good), good);
+  }
+});
+
+test('every guide entry has the prose the UI renders', () => {
+  /** @param {string} label @param {unknown} value */
+  const filled = (label, value) => {
+    assert.equal(typeof value, 'string', `${label} must be a string`);
+    assert.ok(String(value).trim().length > 0, `${label} must not be empty`);
+  };
+  for (const w of CRITICAL_WINDOWS) {
+    for (const field of ['title', 'developing', 'action', 'evidenceNote']) {
+      filled(`window ${w.id}.${field}`, w[field]);
+    }
+  }
+  for (const item of [...ALWAYS_AVOID, ...GENERAL_TIPS]) {
+    for (const field of ['label', 'detail']) filled(`${item.id}.${field}`, item[field]);
+  }
+});
+
+test('guide prose never borrows precision it has not earned', () => {
+  /* No study years, no author citations, no effect-size percentages: the file
+     names bodies (ACOG, CDC, Cochrane…) and nothing more specific. */
+  const BANNED = [
+    [/\b(?:19|20)\d{2}\b/, 'a study year'],
+    [/\bet\s+al\b/i, 'an author citation'],
+    [/\d+(?:\.\d+)?\s?%/, 'an effect-size percentage'],
+    [/\bpercent\b/i, 'an effect-size percentage']
+  ];
+  /** @type {[string, string][]} */
+  const strings = [
+    ...CRITICAL_WINDOWS.flatMap((w) => [
+      [`${w.id}.evidenceNote`, w.evidenceNote],
+      [`${w.id}.developing`, w.developing],
+      [`${w.id}.action`, w.action]
+    ]),
+    ...ALWAYS_AVOID.map((a) => [`${a.id}.detail`, a.detail]),
+    ...GENERAL_TIPS.map((t) => [`${t.id}.detail`, t.detail])
+  ];
+  for (const [where, text] of strings) {
+    for (const [pattern, what] of BANNED) {
+      assert.ok(!pattern.test(text), `${where} contains ${what}: "${text}"`);
+    }
+  }
+});
+
+test('windowsForWeek answers sensibly for every week 4–42', () => {
+  for (const week of WEEK_NUMBERS) {
+    const { active, upcoming } = windowsForWeek(week);
+    assert.ok(Array.isArray(active) && Array.isArray(upcoming), `week ${week}: expected two arrays`);
+
+    assert.ok(active.length > 0, `week ${week}: the Guide has nothing to say`);
+
+    for (const w of active) {
+      assert.ok(
+        w.weeks[0] <= week && week <= w.weeks[1],
+        `week ${week}: "${w.id}" (${w.weeks.join('–')}) is not actually active`
+      );
+    }
+    for (const w of upcoming) {
+      assert.ok(
+        w.weeks[0] > week && w.weeks[0] <= week + 3,
+        `week ${week}: "${w.id}" opens at ${w.weeks[0]}, outside the three-week lookahead`
+      );
+    }
+
+    const activeIds = new Set(active.map((w) => w.id));
+    for (const w of upcoming) {
+      assert.ok(!activeIds.has(w.id), `week ${week}: "${w.id}" is both active and upcoming`);
+    }
+    assert.equal(activeIds.size, active.length, `week ${week}: active list repeats a window`);
+
+    for (const list of [active, upcoming]) {
+      for (let i = 1; i < list.length; i += 1) {
+        assert.ok(
+          list[i - 1].weeks[0] <= list[i].weeks[0],
+          `week ${week}: results are not ordered by opening week`
+        );
+      }
+    }
+
+    /* Every window must be reachable: active on its own weeks. */
+    for (const w of CRITICAL_WINDOWS) {
+      const covers = w.weeks[0] <= week && week <= w.weeks[1];
+      assert.equal(
+        activeIds.has(w.id),
+        covers,
+        `week ${week}: "${w.id}" (${w.weeks.join('–')}) ${covers ? 'should' : 'should not'} be active`
+      );
+    }
+  }
+});
+
+test('windowsForWeek clamps out-of-range weeks and never throws', () => {
+  const low = windowsForWeek(MIN_CONTENT_WEEK);
+  const high = windowsForWeek(MAX_CONTENT_WEEK);
+
+  assert.deepEqual(
+    windowsForWeek(1).active.map((w) => w.id),
+    low.active.map((w) => w.id),
+    'weeks before 4 clamp to week 4'
+  );
+  assert.deepEqual(
+    windowsForWeek(60).active.map((w) => w.id),
+    high.active.map((w) => w.id),
+    'weeks after 42 clamp to week 42'
+  );
+  assert.deepEqual(
+    windowsForWeek(17.8).active.map((w) => w.id),
+    windowsForWeek(17).active.map((w) => w.id),
+    'partial weeks floor to completed weeks'
+  );
+
+  for (const bad of [NaN, undefined, null, 'seventeen', {}]) {
+    const result = windowsForWeek(/** @type {never} */ (bad));
+    assert.deepEqual(
+      result,
+      { active: [], upcoming: [] },
+      `windowsForWeek(${JSON.stringify(bad)}) must degrade to empty, not throw`
+    );
+  }
 });

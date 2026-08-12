@@ -258,7 +258,7 @@ export const weeks21to28 = [
     ],
     nutrition: {
       focus: 'DHA for the brain sprint',
-      why: "Your baby’s brain is adding tissue faster now than it will at any other time, and the membranes of all those new cells are built largely out of DHA, which they draw from you and bank for later. Two or three servings a week of oily fish — salmon, sardines, herring, trout — covers the daily 200 to 300 mg; leaner picks like cod, tilapia and shrimp are lovely low-mercury protein but carry far less DHA. Algae oil does the same job for anyone who would rather skip fish altogether.",
+      why: "Your baby’s brain is adding tissue faster now than it will at any other time, and the membranes of all those new cells are built from fat — DHA is the one they concentrate most, drawing it from you and banking it for later. Two or three servings a week of oily fish — salmon, sardines, herring, trout — covers the daily 200 to 300 mg; leaner picks like cod, tilapia and shrimp are lovely low-mercury protein but carry far less DHA. Algae oil does the same job for anyone who would rather skip fish altogether.",
       eat: [
         { idea: 'Salmon fishcakes with peas and mashed potato', tags: ['dairy-free', 'nut-free'] },
         { idea: 'Sardine and tomato pasta with parsley', tags: ['dairy-free', 'nut-free'] },

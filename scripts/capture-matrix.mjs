@@ -797,6 +797,100 @@ const SHOTS = [
         'sheet covers the screen': s.onTop
       });
     }
+  },
+  {
+    name: 'guide-week17',
+    path: `/?reset=1&due=${DUE}&tab=guide`,
+    check: async (page) => {
+      const s = await probe(page, `(() => {
+        const cards = [...document.querySelectorAll('.guide-now')];
+        const first = cards[0] ?? null;
+        return {
+          screen: !!document.querySelector('.guide-screen'),
+          title: document.querySelector('.guide-screen .title')?.textContent ?? '',
+          sections: [...document.querySelectorAll('.guide-section__title')].map((h) => h.textContent.trim()),
+          nowCards: cards.length,
+          firstTitle: first?.querySelector('.guide-now__title')?.textContent ?? '',
+          firstBadge: first?.querySelector('.evidence')?.textContent ?? '',
+          firstWeeks: first?.querySelector('.guide-now__weeks')?.textContent ?? '',
+          folds: [...document.querySelectorAll('.guide-fold__title')].map((h) => h.textContent.trim()),
+          legend: !!document.querySelector('.guide-legend'),
+          disclaimer: !!document.querySelector('.disclaimer'),
+          scrollY: window.scrollY
+        };
+      })()`);
+      return failures({
+        'guide screen present': s.screen,
+        'header reads Guide': s.title.trim() === 'Guide',
+        '"Right now" section present': s.sections.includes('Right now'),
+        'a full card is open by default': s.nowCards > 0,
+        /* Week 17 is inside the DHA window since the audit widened it to
+           17–42 — the week Today's own nutrition focus is DHA. */
+        'DHA window leads at week 17': /brain-and-retina/i.test(s.firstTitle),
+        'DHA window is graded, not overclaimed': /Good evidence/.test(s.firstBadge),
+        'window weeks labelled': /17/.test(s.firstWeeks),
+        'reference sections folded away': s.folds.length === 3,
+        'evidence legend present': s.legend,
+        'disclaimer present': s.disclaimer,
+        'at top of page': s.scrollY === 0
+      });
+    }
+  },
+  {
+    name: 'guide-habits',
+    path: `/?reset=1&due=${DUE}&tab=guide`,
+    act: async (page) => {
+      /* Open "Good habits", then the first habit inside it: the grade lives in
+         the expansion, so a closed row is a screenshot of nothing new. */
+      await page.evaluate(
+        `(() => {
+           const fold = [...document.querySelectorAll('.guide-fold')].find(
+             (f) => f.querySelector('.guide-fold__title')?.textContent?.trim() === 'Good habits'
+           );
+           if (!fold) throw new Error('no "Good habits" card');
+           fold.querySelector('.guide-fold__toggle').click();
+         })()`
+      );
+      await page.waitForQuiet(300);
+      await page.evaluate(
+        `(() => {
+           const fold = [...document.querySelectorAll('.guide-fold')].find(
+             (f) => f.querySelector('.guide-fold__title')?.textContent?.trim() === 'Good habits'
+           );
+           fold.querySelector('.guide-row--text .disclose__toggle').click();
+           const box = fold.getBoundingClientRect();
+           window.scrollTo(0, Math.max(0, box.top + window.scrollY - 12));
+         })()`
+      );
+      await page.waitForQuiet(320);
+    },
+    check: async (page) => {
+      const s = await probe(page, `(() => {
+        const fold = [...document.querySelectorAll('.guide-fold')].find(
+          (f) => f.querySelector('.guide-fold__title')?.textContent?.trim() === 'Good habits'
+        );
+        const rows = fold ? [...fold.querySelectorAll('.guide-row--text')] : [];
+        const opened = rows.filter((r) => r.querySelector('.disclose__toggle')?.getAttribute('aria-expanded') === 'true');
+        return {
+          open: fold?.querySelector('.guide-fold__toggle')?.getAttribute('aria-expanded') === 'true',
+          rows: rows.length,
+          openedRows: opened.length,
+          badge: opened[0]?.querySelector('.evidence')?.textContent ?? '',
+          detail: opened[0]?.querySelector('.guide-detail')?.textContent ?? '',
+          scrollY: window.scrollY
+        };
+      })()`);
+      return failures({
+        '"Good habits" card is open': s.open,
+        'every habit listed': s.rows === 11,
+        'a habit row is expanded': s.openedRows === 1,
+        /* Tips carry grades now (audit finding: ungraded claims on a screen
+           that promises grades). */
+        'the habit shows an evidence badge': /Well studied|Good evidence|Early research/.test(s.badge),
+        'the habit detail rendered': s.detail.length > 40,
+        'page scrolled to the card': s.scrollY > 0
+      });
+    }
   }
 ];
 

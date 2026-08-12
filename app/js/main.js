@@ -19,13 +19,14 @@ import { tabBar } from './components/tabbar.js';
 import * as welcomeScreen from './screens/welcome.js';
 import * as todayScreen from './screens/today.js';
 import * as sizeScreen from './screens/size.js';
+import * as guideScreen from './screens/guide.js';
 import * as settingsScreen from './screens/settings.js';
 
 /** @typedef {import('./lib/types.js').TabId} TabId */
 /** @typedef {import('./lib/types.js').Settings} Settings */
 
 /** Screen modules by tab id. */
-const SCREENS = { today: todayScreen, size: sizeScreen };
+const SCREENS = { today: todayScreen, size: sizeScreen, guide: guideScreen };
 
 /** Query parameters the demo/dev harness may pass; all are stripped on load. */
 const DEMO_PARAMS = ['due', 'reset', 'tab', 'week', 'pxmm'];
@@ -59,7 +60,7 @@ let detachSheetDrag = null;
  * to the top of an article you were half way through.
  * @type {Object<string, number>}
  */
-const tabScroll = { today: 0, size: 0 };
+const tabScroll = { today: 0, size: 0, guide: 0 };
 
 /** True while the welcome screen is showing (no tab bar). */
 let inWelcome = false;
@@ -330,8 +331,11 @@ function applyQueryParams() {
     }
   }
 
+  /* Any shipped tab, so a new one never needs this list edited again. */
   const tab = q.get('tab');
-  if (tab === 'today' || tab === 'size') currentTab = tab;
+  if (tab && Object.prototype.hasOwnProperty.call(SCREENS, tab)) {
+    currentTab = /** @type {TabId} */ (tab);
+  }
 
   const week = q.get('week');
   if (week !== null) {

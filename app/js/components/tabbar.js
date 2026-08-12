@@ -1,5 +1,5 @@
 /**
- * The bottom tab bar. Phase 1 ships exactly two tabs — Today and Size.
+ * The bottom tab bar — Today, Size, and Guide.
  * Tabs appear only when their phase ships; there are never "coming soon" tabs.
  */
 
@@ -16,7 +16,7 @@ import { el } from '../lib/dom.js';
  *   with the paths (the calendar's "today").
  */
 
-/** The Phase 1 tabs, in order. */
+/** The shipped tabs, in order. */
 export const TABS = /** @type {TabDef[]} */ ([
   {
     id: 'today',
@@ -39,6 +39,18 @@ export const TABS = /** @type {TabDef[]} */ ([
     paths: [
       'M4.5 6.5h15a1.5 1.5 0 0 1 1.5 1.5v8a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 16V8a1.5 1.5 0 0 1 1.5-1.5z',
       'M7.5 6.5v3.5M11 6.5v5M14.5 6.5v3.5M18 6.5v5'
+    ]
+  },
+  {
+    id: 'guide',
+    label: 'Guide',
+    /* An open book: the one symbol for "here is what's known" that reads at
+       23 px without detail, and it shares the pair's bounding box — same
+       shoulders as the calendar, same waist as the ruler. */
+    paths: [
+      'M12 7.2C10.2 5.9 8 5.2 5.4 5.2H4.2A1.2 1.2 0 0 0 3 6.4v10.4a1.2 1.2 0 0 0 1.2 1.2h1.2c2.6 0 4.8.7 6.6 2',
+      'M12 7.2c1.8-1.3 4-2 6.6-2h1.2A1.2 1.2 0 0 1 21 6.4v10.4a1.2 1.2 0 0 1-1.2 1.2h-1.2c-2.6 0-4.8.7-6.6 2',
+      'M12 7.2v12.8'
     ]
   }
 ]);
