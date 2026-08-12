@@ -15,8 +15,8 @@ import { fileURLToPath } from 'node:url';
 /** Directory served as the site root. */
 const ROOT = fileURLToPath(new URL('../app/', import.meta.url));
 
-/** Port from argv[2], falling back to 4173. */
-const PORT = Number.parseInt(process.argv[2] ?? '', 10) || 4173;
+/** Port from argv[2], then the PORT env var (Railway et al.), then 4173. */
+const PORT = Number.parseInt(process.argv[2] ?? '', 10) || Number.parseInt(process.env.PORT ?? '', 10) || 4173;
 
 /** Extension → Content-Type. */
 const MIME = {
@@ -121,6 +121,7 @@ const server = createServer(async (req, res) => {
   }
 });
 
-server.listen(PORT, '127.0.0.1', () => {
+const HOST = process.env.HOST || '127.0.0.1';
+server.listen(PORT, HOST, () => {
   console.log(`Little One → http://127.0.0.1:${PORT}/  (serving ${ROOT})`);
 });
