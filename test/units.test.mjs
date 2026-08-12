@@ -91,3 +91,13 @@ test('formatDaysToGo counts down, then counts past', () => {
   assert.equal(formatDaysToGo(-9), '9 days past your due date');
   assert.equal(formatDaysToGo(Number.NaN), '');
 });
+
+test('formatWeight rounds before it picks the unit', () => {
+  // 15.996 oz must not print as "16.0 oz" — it rounds into a pound.
+  assert.equal(formatWeight(453.5, 'us'), '1 lb');
+  assert.equal(formatWeight(453.59237, 'us'), '1 lb');
+  assert.equal(formatWeight(452, 'us'), '15.9 oz');
+  // 999.6 g must not print as "1000 g".
+  assert.equal(formatWeight(999.6, 'metric'), '1.00 kg');
+  assert.equal(formatWeight(999.4, 'metric'), '999 g');
+});

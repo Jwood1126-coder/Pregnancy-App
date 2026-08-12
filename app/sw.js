@@ -1,14 +1,28 @@
 /**
  * Little One service worker.
  *
- * Explicit precache of every app asset under a versioned cache name, then
- * cache-first for same-origin GETs so the app opens instantly and works fully
- * offline. Bump CACHE_NAME whenever assets change.
+ * Explicit precache of every app asset under a versioned cache name, so the app
+ * opens instantly and works fully offline.
+ *
+ * Freshness: the files that change between deploys (the page itself, JS, CSS,
+ * the manifest) are served **stale-while-revalidate** — the cached copy answers
+ * immediately, a background fetch updates the cache, and the next launch is
+ * current. Without that, a corrected line of medical guidance would never reach
+ * an installed user unless somebody remembered to edit a string in this file.
+ * Immutable assets (icons) stay pure cache-first.
  */
 
 /* eslint-env serviceworker */
 
-const CACHE_NAME = 'little-one-v1';
+/**
+ * Cache generation. Tied to the app version rather than a free-floating
+ * literal, and asserted against `APP_VERSION` in `js/screens/settings.js` by
+ * test/content.test.mjs — so shipping a new version cannot silently reuse the
+ * old cache.
+ */
+const CACHE_VERSION = '0.1.0';
+
+const CACHE_NAME = `little-one-v${CACHE_VERSION}`;
 
 /**
  * Every file the app needs to run offline. Missing entries (icons that a later
@@ -82,6 +96,77 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+/**
+ * True for the things a deploy changes: the document itself, modules, styles,
+ * the manifest. Icons and other static assets are treated as immutable.
+ * @param {Request} request
+ * @param {URL} url
+ * @returns {boolean}
+ */
+function isVolatile(request, url) {
+  if (request.mode === 'navigate') return true;
+  if (url.pathname.endsWith('/')) return true;
+  return /\.(?:html|js|mjs|css|webmanifest|json)$/i.test(url.pathname);
+}
+
+/**
+ * Fetch, store, and report whether the stored copy actually changed.
+ * @param {Request} request
+ * @returns {Promise<Response|null>} The fresh response, or null when offline.
+ */
+async function revalidate(request) {
+  let response;
+  try {
+    response = await fetch(request);
+  } catch {
+    return null;
+  }
+  if (!response || !response.ok || response.type !== 'basic') return response ?? null;
+
+  const cache = await caches.open(CACHE_NAME);
+  const previous = await cache.match(request, { ignoreSearch: true });
+  await cache.put(request, response.clone());
+
+  const changed =
+    previous &&
+    (previous.headers.get('etag') !== response.headers.get('etag') ||
+      previous.headers.get('last-modified') !== response.headers.get('last-modified'));
+  if (changed) {
+    const clients = await self.clients.matchAll({ type: 'window' });
+    for (const client of clients) {
+      client.postMessage({ type: 'little-one:asset-updated', url: request.url });
+    }
+  }
+  return response;
+}
+
+/**
+ * Cache-first for immutable assets, stale-while-revalidate for everything a
+ * deploy can change, and the shell as the offline fallback for navigations.
+ * @param {FetchEvent} event
+ * @param {Request} request
+ * @param {URL} url
+ * @returns {Promise<Response>}
+ */
+async function respond(event, request, url) {
+  const cached = await caches.match(request, { ignoreSearch: true });
+  if (cached) {
+    if (isVolatile(request, url)) event.waitUntil(revalidate(request));
+    return cached;
+  }
+
+  const fresh = await revalidate(request);
+  if (fresh) return fresh;
+
+  const fallback = await caches.match('./index.html');
+  if (request.mode === 'navigate' && fallback) return fallback;
+  return new Response('Offline', {
+    status: 503,
+    statusText: 'Offline',
+    headers: { 'Content-Type': 'text/plain; charset=utf-8' }
+  });
+}
+
 self.addEventListener('fetch', (event) => {
   const request = event.request;
   if (request.method !== 'GET') return;
@@ -89,22 +174,5 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
-  event.respondWith(
-    (async () => {
-      const cached = await caches.match(request, { ignoreSearch: true });
-      if (cached) return cached;
-      try {
-        const response = await fetch(request);
-        if (response && response.ok && response.type === 'basic') {
-          const cache = await caches.open(CACHE_NAME);
-          cache.put(request, response.clone());
-        }
-        return response;
-      } catch (err) {
-        const fallback = await caches.match('./index.html');
-        if (request.mode === 'navigate' && fallback) return fallback;
-        throw err;
-      }
-    })()
-  );
+  event.respondWith(respond(event, request, url));
 });

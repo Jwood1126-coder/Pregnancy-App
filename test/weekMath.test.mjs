@@ -17,7 +17,11 @@ import {
   contentWeekFor,
   formatGA,
   dueDateFromLMP,
-  pregnancyStatus
+  pregnancyStatus,
+  isPlausibleDueDate,
+  dueDateBounds,
+  MIN_PLAUSIBLE_DAYS,
+  MAX_PLAUSIBLE_DAYS
 } from '../app/js/lib/weekMath.js';
 
 test('constants match the spec', () => {
@@ -172,4 +176,41 @@ test('pregnancyStatus reports the whole picture at once', () => {
     isBeforeContent: false,
     isPastDue: false
   });
+});
+
+test('isPlausibleDueDate fences off dates no pregnancy could have', () => {
+  const today = '2026-08-12';
+  // The demo date: 17w + 3d.
+  assert.ok(isPlausibleDueDate('2027-01-17', today));
+  // Due today, and the edges of the window.
+  assert.ok(isPlausibleDueDate(today, today));
+  assert.ok(isPlausibleDueDate('2027-06-02', today)); // 294 days out → 0w − 14d
+  assert.ok(isPlausibleDueDate('2026-07-15', today)); // 28 days past due
+  // A one-digit year typo — the bug this exists to catch.
+  assert.equal(isPlausibleDueDate('2028-01-17', today), false);
+  assert.equal(isPlausibleDueDate('2025-01-17', today), false);
+  assert.equal(isPlausibleDueDate('2027-06-03', today), false);
+  assert.equal(isPlausibleDueDate('2026-07-14', today), false);
+  // Junk never passes.
+  assert.equal(isPlausibleDueDate('2027-02-31', today), false);
+  assert.equal(isPlausibleDueDate('', today), false);
+  assert.equal(isPlausibleDueDate(null, today), false);
+});
+
+test('dueDateBounds matches the window isPlausibleDueDate enforces', () => {
+  const today = '2026-08-12';
+  const { min, max } = dueDateBounds(today);
+  assert.ok(isPlausibleDueDate(min, today), 'the min bound must itself be allowed');
+  assert.ok(isPlausibleDueDate(max, today), 'the max bound must itself be allowed');
+  assert.equal(daysPregnant(max, today), MIN_PLAUSIBLE_DAYS);
+  assert.equal(daysPregnant(min, today), MAX_PLAUSIBLE_DAYS);
+});
+
+test('formatGA never prints a negative gestational age', () => {
+  assert.equal(formatGA({ weeks: 17, days: 3 }), '17w + 3d');
+  assert.equal(formatGA({ weeks: 0, days: 0 }), '0w + 0d');
+  // A far-future due date floors to zero rather than rendering "-35w + 2d".
+  assert.equal(formatGA(gaFromDays(daysPregnant('2028-01-17', '2026-08-12'))), '0w + 0d');
+  assert.equal(formatGA({ weeks: -1, days: 5 }), '0w + 0d');
+  assert.equal(formatGA(null), '0w + 0d');
 });

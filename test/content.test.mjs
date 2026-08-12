@@ -396,6 +396,32 @@ test('the service worker precaches every shipped asset', () => {
   assert.deepEqual(stale, [], `sw.js precaches files that do not exist: ${stale.join(', ')}`);
 });
 
+test('the service-worker cache generation tracks the app version', () => {
+  const appDir = fileURLToPath(new URL('../app/', import.meta.url));
+  const sw = readFileSync(`${appDir}sw.js`, 'utf8');
+  const settings = readFileSync(`${appDir}js/screens/settings.js`, 'utf8');
+
+  const swVersion = /const CACHE_VERSION = '([^']+)'/.exec(sw);
+  assert.ok(swVersion, 'sw.js must declare CACHE_VERSION');
+
+  const appVersion = /export const APP_VERSION = '([^']+)'/.exec(settings);
+  assert.ok(appVersion, 'settings.js must declare APP_VERSION');
+
+  assert.equal(
+    swVersion[1],
+    appVersion[1],
+    'sw.js CACHE_VERSION must match APP_VERSION — otherwise a release reuses the old cache'
+  );
+
+  const pkg = JSON.parse(
+    readFileSync(fileURLToPath(new URL('../package.json', import.meta.url)), 'utf8')
+  );
+  assert.equal(pkg.version, appVersion[1], 'package.json version must match APP_VERSION');
+
+  assert.match(sw, /const CACHE_NAME = `little-one-v\$\{CACHE_VERSION\}`/,
+    'CACHE_NAME must be derived from CACHE_VERSION, not written out by hand');
+});
+
 /* -------------------------------------------------------------- silhouettes */
 
 test('every week resolves to a silhouette, and crown-heel weeks have a heelY', () => {
