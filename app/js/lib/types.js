@@ -47,7 +47,9 @@
  * Persisted app state. localStorage key: `little-one:v1`.
  * `pxPerMm: null` means "not calibrated" — use `DEFAULT_PX_PER_MM`.
  * `todosDone` maps a todo id to whether it is checked off.
- * @typedef {{ version: 1, dueDateISO: string|null, nickname: string,
+ * `version` is `SCHEMA_VERSION` for anything this build writes; a record left
+ * by a newer build keeps its own higher number rather than being downgraded.
+ * @typedef {{ version: number, dueDateISO: string|null, nickname: string,
  *   units: UnitSystem, dietTags: DietTag[], pxPerMm: number|null,
  *   todosDone: Object<string, boolean> }} Settings
  */

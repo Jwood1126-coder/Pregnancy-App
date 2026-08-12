@@ -151,11 +151,60 @@ export function contentWeekFor(weeks) {
 
 /**
  * "17w + 3d" — the standard shorthand for a gestational age.
+ *
+ * Clamps at `0w + 0d`: a due date far enough in the future produces a negative
+ * day count, and "-35w + 2d" must never reach a screen. The input paths reject
+ * such dates (see {@link isPlausibleDueDate}); this is the backstop.
+ *
  * @param {import('./types.js').GestationalAge} ga
  * @returns {string}
  */
 export function formatGA(ga) {
-  return `${ga.weeks}w + ${ga.days}d`;
+  if (!ga || !Number.isFinite(ga.weeks) || ga.weeks < 0) return '0w + 0d';
+  return `${ga.weeks}w + ${Math.max(0, ga.days)}d`;
+}
+
+/**
+ * The window a due date has to fall in to describe a real pregnancy: from about
+ * four weeks past due back to a couple of weeks before conception. A one-digit
+ * year typo lands far outside it.
+ */
+export const MIN_PLAUSIBLE_DAYS = -14;
+
+/** @see MIN_PLAUSIBLE_DAYS */
+export const MAX_PLAUSIBLE_DAYS = PREGNANCY_DAYS + 28;
+
+/**
+ * Whether a due date could plausibly belong to a pregnancy happening now.
+ * @param {unknown} dueISO Candidate due date, `YYYY-MM-DD`.
+ * @param {string} [todayIso] "Today", `YYYY-MM-DD`. Defaults to the real today.
+ * @returns {boolean} False for junk, and for dates outside the window.
+ */
+export function isPlausibleDueDate(dueISO, todayIso = todayISO()) {
+  if (!isValidISODate(dueISO)) return false;
+  const days = daysPregnant(/** @type {string} */ (dueISO), todayIso);
+  return days >= MIN_PLAUSIBLE_DAYS && days <= MAX_PLAUSIBLE_DAYS;
+}
+
+/**
+ * The `min`/`max` a due-date input should carry, matching
+ * {@link isPlausibleDueDate}.
+ * @param {string} [todayIso] "Today", `YYYY-MM-DD`. Defaults to the real today.
+ * @returns {{ min: string, max: string }} ISO dates for the input attributes.
+ */
+export function dueDateBounds(todayIso = todayISO()) {
+  const base = parseISODate(todayIso);
+  const shift = (days) => {
+    const d = new Date(base.getFullYear(), base.getMonth(), base.getDate());
+    d.setDate(d.getDate() + days);
+    return toISODate(d);
+  };
+  /* daysPregnant = 280 − daysUntilDue, so the day count runs backwards against
+     the calendar: the *latest* allowed due date is the *smallest* day count. */
+  return {
+    min: shift(PREGNANCY_DAYS - MAX_PLAUSIBLE_DAYS),
+    max: shift(PREGNANCY_DAYS - MIN_PLAUSIBLE_DAYS)
+  };
 }
 
 /**

@@ -5,7 +5,7 @@
   "description": "Little One — a private, iPhone-first pregnancy companion PWA. Zero dependencies.",
   "type": "module",
   "scripts": {
-    "test": "node --test test/",
+    "test": "node --test \"test/*.test.mjs\"",
     "serve": "node scripts/serve.mjs",
     "icons": "node scripts/generate-icons.mjs",
     "shots": "node scripts/screenshot.mjs"
