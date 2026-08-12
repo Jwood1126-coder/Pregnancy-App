@@ -32,11 +32,13 @@ export const TABS = /** @type {TabDef[]} */ ([
   {
     id: 'size',
     label: 'Size',
-    /* A ruler. The old double-headed arrow between two rules read as a resize
-       handle borrowed from a drawing tool. */
+    /* A ruler, deep enough to carry the calendar's optical mass: at 18 × 7 it
+       was a squat sliver beside a 16 × 16.5 icon, and a tab pair that does not
+       share a bounding box is the clearest "this is a web page" tell in the
+       chrome. */
     paths: [
-      'M4.5 8.5h15a1.5 1.5 0 0 1 1.5 1.5v4a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 14v-4a1.5 1.5 0 0 1 1.5-1.5z',
-      'M7.5 8.5v3M11 8.5v4.5M14.5 8.5v3M18 8.5v4.5'
+      'M4.5 6.5h15a1.5 1.5 0 0 1 1.5 1.5v8a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 16V8a1.5 1.5 0 0 1 1.5-1.5z',
+      'M7.5 6.5v3.5M11 6.5v5M14.5 6.5v3.5M18 6.5v5'
     ]
   }
 ]);

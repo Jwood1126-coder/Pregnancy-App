@@ -637,7 +637,12 @@ const SHOTS = [
         /* The point of the week-40 shot: the baby has outgrown the screen, so
            the badge must own up to it with a percentage. */
         checks['fit-scaled with a percent badge'] = /^\d+%$/.test(s.pct.trim());
-        checks['badge explains the scaling'] = /outgrew the screen|calibrate/i.test(s.badge);
+        /* Uncalibrated — which is what every shot in this matrix is — the badge
+           reads "Shown at 18% · Make it exact". The milestone sentence belongs
+           to the one week the baby outgrows the screen, not to all 26 after it,
+           so week 40 is expected to carry the offer instead. */
+        checks['badge explains the scaling'] =
+          /outgrew the screen|make it exact|calibrate|of actual size/i.test(s.badge);
       } else {
         checks['badge is not a scaling error'] = s.badge.length > 0;
       }
@@ -688,7 +693,12 @@ const SHOTS = [
         'toggle now offers Fit to screen': /fit to screen/i.test(s.label),
         'stage in life-size mode': s.lifeClass,
         'badge claims actual size': /actual size/i.test(s.badge),
-        'content overflows the stage': s.scrollable > 200,
+        /* 787 px of week-17 baby in a stage that is now ~595 px, so ~190 px of
+           it lives off-frame. The threshold was 200 when the stage still paid
+           a row of chrome for the honesty badge; the badge is overlaid now, the
+           picture kept those pixels, and the mode is still genuinely scrolling.
+           Anything above ~120 px proves that. */
+        'content overflows the stage': s.scrollable > 120,
         'scrolled to mid-baby': midpoint > 0.3 && midpoint < 0.7
       });
     }

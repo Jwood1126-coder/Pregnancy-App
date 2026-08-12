@@ -85,17 +85,85 @@ const CSS = `
   min-height: 180px;
 }
 
+/* A measuring reference, not a drop zone. Dashes say "placeholder", and their
+   gaps plus a 2 px line put about ±0.35 mm of ambiguity into the one
+   measurement the whole true-size feature rests on. One hairline (border-box,
+   so the outer edge is the true 53.98 × 85.60 mm reference) with four corner
+   ticks: the aiming edges are unambiguous and the run between them stays
+   quiet. */
 .size-cal__card {
   position: relative;
   flex: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px dashed color-mix(in srgb, var(--accent) 60%, transparent);
+  border: 1px solid var(--accent);
   background: color-mix(in srgb, var(--accent-soft) 55%, transparent);
 }
 
+/* The corners, reinforced: four angles that inherit the card's own radius, so
+   each one thickens the real outline through its curve and a little way along
+   both straight runs instead of floating outside it like a crop mark. */
+.size-cal__card::before,
+.size-cal__card::after,
+.size-cal__cardCorners::before,
+.size-cal__cardCorners::after {
+  content: '';
+  position: absolute;
+  width: 34px;
+  height: 34px;
+  max-width: 45%;
+  max-height: 22%;
+  border: 0 solid var(--accent);
+  pointer-events: none;
+}
+
+.size-cal__card::before {
+  top: -1px;
+  left: -1px;
+  border-top-width: 2px;
+  border-left-width: 2px;
+  border-top-left-radius: var(--card-r, 0px);
+}
+
+.size-cal__card::after {
+  top: -1px;
+  right: -1px;
+  border-top-width: 2px;
+  border-right-width: 2px;
+  border-top-right-radius: var(--card-r, 0px);
+}
+
+.size-cal__cardCorners::before {
+  bottom: -1px;
+  left: -1px;
+  border-bottom-width: 2px;
+  border-left-width: 2px;
+  border-bottom-left-radius: var(--card-r, 0px);
+}
+
+.size-cal__cardCorners::after {
+  bottom: -1px;
+  right: -1px;
+  border-bottom-width: 2px;
+  border-right-width: 2px;
+  border-bottom-right-radius: var(--card-r, 0px);
+}
+
+/* And one quiet chip block, so the rectangle reads as a card rather than as an
+   empty upload target. */
+.size-cal__cardChip {
+  position: absolute;
+  left: 14%;
+  top: 22%;
+  width: 30%;
+  aspect-ratio: 4 / 3;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
 .size-cal__cardLabel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 16%;
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.02em;
@@ -120,7 +188,9 @@ const CSS = `
   padding: 0;
   border: 0;
   border-radius: var(--radius-pill);
-  background: transparent;
+  /* A resting affordance, so the − and + read as the 44 pt buttons they are
+     rather than as inert glyphs beside the slider. */
+  background: color-mix(in srgb, var(--ink) 5%, transparent);
   color: var(--ink-soft);
   font-family: inherit;
   font-size: 17px;
@@ -239,11 +309,18 @@ export function render(ctx) {
   const cardLabel = el(
     'p',
     { class: 'size-cal__cardLabel' },
-    'Hold your card here'
+    'Match your card to this outline'
   );
 
   const cardOutline = /** @type {HTMLElement} */ (
-    el('div', { class: 'size-cal__card', 'aria-hidden': 'true' }, cardLabel)
+    el(
+      'div',
+      { class: 'size-cal__card', 'aria-hidden': 'true' },
+      /* Two elements, four corner ticks: `::before`/`::after` on each. */
+      el('span', { class: 'size-cal__cardCorners' }),
+      el('span', { class: 'size-cal__cardChip' }),
+      cardLabel
+    )
   );
 
   const stage = el('div', { class: 'size-cal__stage' }, cardOutline);
@@ -286,7 +363,11 @@ export function render(ctx) {
     const longSide = CREDIT_CARD_MM.w * value;
     cardOutline.style.width = `${shortSide}px`;
     cardOutline.style.height = `${longSide}px`;
+    /* The corner marks inherit this through a custom property — `inherit` on a
+       pseudo-element resolves against its own originating element, and one of
+       the four hangs off a child span. */
     cardOutline.style.borderRadius = `${CARD_RADIUS_MM * value}px`;
+    cardOutline.style.setProperty('--card-r', `${CARD_RADIUS_MM * value}px`);
     /* The step is finer than one decimal place, so a one-decimal readout would
        repeat itself for four nudges out of five and the control would feel
        dead — to a screen reader especially. Describe the thing being matched,
@@ -302,7 +383,7 @@ export function render(ctx) {
     readout.textContent =
       value === startValue
         ? 'Slide until the outline matches your card exactly.'
-        : 'Looks close — trust your eye.';
+        : 'Looks close — trust your eye, it only has to be honest.';
   }
 
   /**
@@ -362,7 +443,9 @@ export function render(ctx) {
       el(
         'header',
         { class: 'sheet__head' },
-        el('h1', { class: 'title', tabindex: '-1' }, 'Actual size'),
+        /* Not "Actual size" — that is what the badge already says. The sheet
+           has to announce a new idea, and say what it buys. */
+        el('h1', { class: 'title', tabindex: '-1' }, 'Make it life-size'),
         el(
           'button',
           { class: 'btn btn--quiet', type: 'button', onClick: () => close() },
@@ -372,8 +455,9 @@ export function render(ctx) {
       el(
         'p',
         { class: 'size-cal__copy' },
-        'Hold any bank or library card upright against the screen and slide ' +
-          'until the outline matches it.'
+        'Thirty seconds, once. Hold any bank or library card upright against ' +
+          'the screen and slide until the outline matches it — after this, ' +
+          'every week is drawn at your baby’s true size.'
       ),
       stage,
       /* The outline can be taller than the phone, so the sheet scrolls — but

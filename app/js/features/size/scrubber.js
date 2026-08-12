@@ -112,8 +112,6 @@ const CSS = `
   white-space: nowrap;
 }
 
-.size-scrub__tick--mark { color: var(--accent-ink); font-weight: 600; }
-
 .size-scrub__tick--dot {
   width: 3px;
   height: 3px;
@@ -212,12 +210,17 @@ export function scrubber(options) {
     ? el('p', { class: 'size-scrub__hint' }, options.hint)
     : null;
 
+  /* Only the ends are labelled. A bold sage "20" sitting mid-track was the one
+     emphasised thing on the row and it is not the value — at week 17 the eye
+     landed on it and read it as the current week, which the header already
+     says. The change of ruler it marked is explained where it bites, by the
+     note the Size screen shows on week 20 and on any crossing. */
   const ticks = el(
     'div',
     { class: 'size-scrub__ticks', 'aria-hidden': 'true' },
     tick(min, String(min), min, max),
     dot(14, min, max),
-    tick(BASIS_SWITCH_WEEK, String(BASIS_SWITCH_WEEK), min, max, 'size-scrub__tick--mark'),
+    dot(BASIS_SWITCH_WEEK, min, max),
     dot(28, min, max),
     tick(max, String(max), min, max)
   );
@@ -268,15 +271,16 @@ export function scrubber(options) {
  * @param {string} label Text to show.
  * @param {number} min Track minimum.
  * @param {number} max Track maximum.
- * @param {string} [extra] Extra class name.
  * @returns {HTMLElement|null} `null` when the week is off the track.
  */
-function tick(week, label, min, max, extra) {
+function tick(week, label, min, max) {
   if (week < min || week > max) return null;
-  const cls = `size-scrub__tick${extra ? ` ${extra}` : ''}`;
-  const title = week === BASIS_SWITCH_WEEK ? 'Head-to-heel measuring starts here' : null;
   return /** @type {HTMLElement} */ (
-    el('span', { class: cls, style: `left: ${percent(week, min, max)}%`, title }, label)
+    el(
+      'span',
+      { class: 'size-scrub__tick', style: `left: ${percent(week, min, max)}%` },
+      label
+    )
   );
 }
 

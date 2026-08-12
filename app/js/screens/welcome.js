@@ -262,6 +262,15 @@ export function render(ctx) {
           { class: 'lede muted' },
           'A quiet place to follow your baby week by week. Everything you write ' +
             'stays on this phone — no account, no cloud, no one else.'
+        ),
+        /* Privacy is the promise; this is the reason to open it tomorrow. The
+           screen that has to create anticipation never once mentioned the
+           thing the app is for. */
+        el(
+          'p',
+          { class: 'lede muted' },
+          'And each week you can see them at their actual size — as big as they ' +
+            'really are, right there on the glass.'
         )
       ),
       el(
@@ -297,6 +306,14 @@ export function render(ctx) {
           )
         ),
         startBtn
+      ),
+      /* The most emotional screen in the app should not close on a legal line.
+         The warm sentence carries full strength; the disclaimer stays, quieter,
+         underneath it — every advice surface still ends with it. */
+      el(
+        'p',
+        { class: 'welcome__closer' },
+        'Two taps and we’ll start counting the weeks with you.'
       ),
       disclaimer()
     )

@@ -63,15 +63,24 @@ const CSS = `
   transition: width var(--dur) var(--ease);
 }
 
-.today-nav__btn { color: var(--ink-soft); }
+/* Flat, not elevated. Three identical raised white circles — the gear and the
+   two chevrons — formed an L across the top of the screen that out-weighed the
+   56 px week numeral it is built around. The header keeps one focal point (the
+   numeral) and one raised affordance (Settings); the chevrons keep their 44 pt
+   hit box and say what they are with the symbol alone. */
+.today-nav__btn {
+  color: var(--ink-soft);
+  background: transparent;
+  box-shadow: none;
+}
 
-/* Fade the symbol, not the chip: dropping the fill and the shadow together
-   left a pale smudge on the warm ground that read as a rendering artifact
-   rather than as a disabled control. */
+/* The press feedback the card fill used to imply, made explicit. */
+.today-nav__btn:active { background: var(--press); }
+
+/* Fade the symbol; there is no chip left to fade. */
 .today-nav__btn[disabled] {
   color: color-mix(in srgb, var(--ink-soft) 35%, transparent);
-  box-shadow: none;
-  background: color-mix(in srgb, var(--card) 55%, transparent);
+  background: transparent;
 }
 
 /* While browsing, the pill owns the left of the row and the chevrons the

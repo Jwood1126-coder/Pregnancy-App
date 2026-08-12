@@ -68,10 +68,10 @@ export const SIZE_AVERAGES_NOTE =
  * `"Try again"` replaces it when a calibration exists but rests on a slider
  * endpoint, which means the outline may never have matched the user's card.
  */
-export const CALIBRATE_LEAD = 'Approximate size · ';
+export const CALIBRATE_LEAD = 'Actual size, near enough · ';
 
 /** The tappable verb on that badge. */
-export const CALIBRATE_ACTION = 'Calibrate';
+export const CALIBRATE_ACTION = 'Make it exact';
 
 /** …and when a calibration exists but rested on a slider endpoint. */
 export const RECALIBRATE_ACTION = 'Try again';
@@ -79,11 +79,8 @@ export const RECALIBRATE_ACTION = 'Try again';
 /** Smallest stage we will ever ask for, in CSS px. */
 const MIN_AVAILABLE_PX = 140;
 
-/** How far the figure may reach into the bottom scrim's gradient, in CSS px. */
-const FOOT_BLEED_PX = 24;
-
-/** Smallest stage the early weeks are allowed to hug down to, in CSS px. */
-const MIN_HUG_PX = 320;
+/** How long the "there you go" reveal holds the badge after calibrating, in ms. */
+const REVEAL_MS = 3500;
 
 /**
  * How much smaller an earlier week has to be before it is worth drawing as the
@@ -105,12 +102,23 @@ const GHOST_MAX_RATIO = 0.92;
 let session = null;
 
 /**
+ * When the calibration sheet saves, the whole app re-renders before the sheet's
+ * `onSave` runs — so the moment "that's them, actual size" belongs to is owned
+ * by a screen that no longer exists. The moment is therefore parked here, at
+ * module scope, and the freshly mounted screen picks it up on its first honest
+ * measurement. Milliseconds since the epoch; `0` means "nothing to celebrate".
+ * @type {number}
+ */
+let revealUntil = 0;
+
+/**
  * Forget the scrubbed week — called by `main.js` when storage is cleared, so a
  * `?reset=1` link cannot leave the Size screen parked on a stranger's week.
  * @returns {void}
  */
 export function resetSessionWeek() {
   session = null;
+  revealUntil = 0;
 }
 
 const CSS = `
@@ -152,29 +160,57 @@ const CSS = `
 
 /* --- The honesty badge --------------------------------------------------- */
 
-/* The badge sits inside the stage — it costs no row of its own in the screen's
-   flex column. It is laid out, not floated: at week 40 the crown reaches the
-   top of the picture area, and a floating badge would paint over the baby's
-   head. The extra bottom padding glues it to the crown below it, so badge and
-   baby read as one group rather than as two objects sharing a card. */
+/* The badge is overlaid on the stage rather than stacked above it: as a row it
+   cost the picture ~48 px on the one screen whose whole reason to exist is the
+   picture. It floats over the crown on the weeks that reach the top, and
+   carries the same blurred material the life-size marks use so it stays legible
+   there. Only the badge itself takes pointer events — the rest of the band is
+   picture, and a drag on the picture must reach the picture. */
 .size-stage__top {
+  position: absolute;
+  top: 8px;
+  left: 0;
+  right: 0;
+  z-index: 2;
   display: flex;
   justify-content: center;
-  padding: 0 var(--gutter) 14px;
+  padding: 0 var(--gutter);
+  pointer-events: none;
 }
 
+.size-fit { pointer-events: auto; }
+
 /* Uncalibrated, the badge *is* the invitation: one always-visible element
-   instead of a badge plus a calibrate row that lived below the fold. */
+   instead of a badge plus a calibrate row that lived below the fold. The
+   pill stays badge-sized; the hit box under it is 44 pt, which is the iOS
+   rule — and the inset ring is what says "control" rather than "caption". */
 button.size-fit {
+  position: relative;
   border: 0;
   cursor: pointer;
   font-family: inherit;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent);
   transition: transform var(--dur) var(--ease);
+}
+
+button.size-fit::after {
+  content: '';
+  position: absolute;
+  inset: -7px -12px;
 }
 
 button.size-fit:active { transform: scale(0.98); transition-duration: 60ms; }
 
-.size-fit__do { color: var(--accent-ink); font-weight: 700; }
+/* Underlined, so the tappable half reads as tappable on the sage pill and on
+   the neutral one alike — weight alone changed with the week. */
+.size-fit__do {
+  color: var(--accent-ink);
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  text-decoration-color: color-mix(in srgb, var(--accent) 50%, transparent);
+}
 
 .size-fit {
   text-wrap: balance;
@@ -193,9 +229,11 @@ button.size-fit:active { transform: scale(0.98); transition-duration: 60ms; }
 
 /* Same object, two tones — sage when the size is true, neutral when it is not.
    The scaled state is the one 26 of the 39 weeks live in, so it cannot be a
-   fainter, smaller, differently-shaped thing that morphs mid-scrub. */
+   fainter, smaller, differently-shaped thing that morphs mid-scrub. Both tones
+   are opaque: the pill floats over the crown on the weeks that fill the stage,
+   and a translucent one let the baby's head read straight through the words. */
 .size-fit--scaled {
-  background: color-mix(in srgb, var(--ink) 5%, transparent);
+  background: color-mix(in srgb, var(--ink) 5%, var(--card));
   color: var(--ink-soft);
   font-size: 15px;
   font-weight: 500;
@@ -235,8 +273,26 @@ button.size-fit:active { transform: scale(0.98); transition-duration: 60ms; }
   overflow: auto;
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
-  /* Both cut edges dissolve, so a body that runs off the frame reads as
-     "there is more this way" rather than as a broken crop. */
+  /* A cut edge dissolves so a body running off the frame reads as "there is
+     more this way" rather than as a broken crop. It is a scroll shadow, not a
+     decoration: at rest the crown is at the top of the scroller and fading it
+     would dissolve the head on the one mode whose promise is "scroll from the
+     head". The top fade appears only once something has scrolled above it. */
+  mask-image: linear-gradient(
+    to bottom,
+    #000 0,
+    #000 calc(100% - 18px),
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    #000 0,
+    #000 calc(100% - 18px),
+    transparent 100%
+  );
+}
+
+.size-stage--life .size-scroller.is-scrolled {
   mask-image: linear-gradient(
     to bottom,
     transparent 0,
@@ -265,13 +321,24 @@ button.size-fit:active { transform: scale(0.98); transition-duration: 60ms; }
 
 .size-canvas--ready { opacity: 1; }
 
+/* The moment the drawing becomes physically true deserves a beat — one swell,
+   no confetti. */
+.size-canvas--reveal { animation: size-reveal 620ms var(--ease); }
+
+@keyframes size-reveal {
+  from { opacity: 0.5; }
+  to { opacity: 1; }
+}
+
 .size-figure {
   position: absolute;
   top: 0;
   left: 50%;
   transition: transform 220ms var(--ease);
-  will-change: transform;
 }
+
+/* Only the layer that is on screen at rest earns a compositor layer. */
+.size-figure--now { will-change: transform; }
 
 /* During a drag the figure must track the thumb 1:1 — a running tween makes it
    trail on elastic. The ease is for discrete jumps only. */
@@ -279,21 +346,42 @@ button.size-fit:active { transform: scale(0.98); transition-duration: 60ms; }
 
 .size-figure--now path { fill: var(--accent); }
 
-/* Growth read as area, not as a line: an earlier week is painted as a paler
-   solid nested inside this week, so the full-strength sage rim around it *is*
-   the growth. A dashed stroke riding this week's own edge read as a torn
-   sticker at 1% and as stitching across the belly at 12%. */
+/* Growth read as a contour, not as a mass. A paler solid nested inside the
+   figure inverted figure and ground — the eye took the pale interior for the
+   subject and this week survived as a crescent — and in dark mode the nested
+   fill was the *darker* of the two, so the picture said the opposite of the
+   caption. A line drawn on top of the fill says "you were here" in both
+   themes. Non-scaling-stroke is not optional here: the layer transform ranges
+   from 0.17 to 15, so a plain stroke would be invisible at week 40 and thirty
+   pixels thick at week 8. */
 .size-figure--ghost path {
-  fill: color-mix(in srgb, var(--accent) 46%, var(--card));
-  stroke: none;
+  fill: none;
+  stroke: color-mix(in srgb, var(--card) 72%, transparent);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+
+/* Growth is a verb. The ghost snaps in the instant the thumb moves, lingers
+   about four tenths of a second after it is let go, then dissolves — so the
+   comparison happens in the motion and the screen settles to one silhouette,
+   which is what a keepsake's resting state should be. */
+.size-figure--ghost {
+  opacity: 0;
+  transition: opacity 620ms var(--ease) 420ms;
+}
+
+.size-stage--scrubbing .size-figure--ghost {
+  opacity: 1;
+  transition: opacity 110ms var(--ease) 0s;
 }
 
 /* Dark is redesigned, not inverted: a full-strength accent across the whole
-   stage is a glare panel at 3am, and it flattens the shape. Both layers are
-   tinted from the same knocked-back base so the growth rim survives. */
+   stage is a glare panel at 3am, and it flattens the shape. The figure is
+   tinted from a knocked-back base, and the growth contour is drawn in the
+   ground so it reads as a line cut into the shape. */
 @media (prefers-color-scheme: dark) {
   .size-figure--now path { fill: color-mix(in srgb, var(--accent) 72%, var(--bg)); }
-  .size-figure--ghost path { fill: color-mix(in srgb, var(--accent) 40%, var(--bg)); }
+  .size-figure--ghost path { stroke: color-mix(in srgb, var(--bg) 66%, transparent); }
 }
 
 /* The early weeks are a small figure in a large frame. A single soft wash of
@@ -373,9 +461,10 @@ button.size-fit:active { transform: scale(0.98); transition-duration: 60ms; }
 /* The bottom of the stage is a scrim carrying everything the picture needs:
    the numbers, the life-size control, and the scrubber itself. Overlaying them
    instead of stacking them below gives the baby roughly a hundred more pixels
-   — on the one screen where pixels are the product. The figure fades into the
-   band rather than being sliced by it, and the stage measurement reserves all
-   but the topmost, purely-gradient strip. */
+   — on the one screen where pixels are the product. The whole band is reserved
+   and the softener is a defined 14 px strip the figure never enters: the heel
+   is the exact landmark the stat line names, and it used to dissolve in the
+   gradient about twenty pixels above the words claiming to measure it. */
 .size-stage__foot {
   position: absolute;
   left: 0;
@@ -385,11 +474,11 @@ button.size-fit:active { transform: scale(0.98); transition-duration: 60ms; }
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding: 22px 0 4px;
+  padding: 12px 0 4px;
   background: linear-gradient(
     to top,
-    var(--card) 82%,
-    color-mix(in srgb, var(--card) 0%, transparent)
+    var(--card) 0 calc(100% - 14px),
+    color-mix(in srgb, var(--card) 0%, transparent) 100%
   );
   pointer-events: none;
 }
@@ -419,7 +508,19 @@ button.size-fit:active { transform: scale(0.98); transition-duration: 60ms; }
   line-height: 1.35;
   color: var(--ink);
   font-variant-numeric: tabular-nums;
+  text-wrap: pretty;
+  /* Two lines, always. Some weeks' numbers fit on one line and some don't, and
+     letting the band breathe by 19 px moved the whole picture — and the
+     scrubber under the user's thumb — from week to week. */
+  min-height: 2.7em;
 }
+
+/* The line breaks between its facts, never inside one. As plain text it broke
+   as "· a small" / "pumpkin 🎃" and as "7 lb 10" / "oz" — and a lone emoji on a
+   line of its own is the most conspicuous widow in the app, directly under the
+   hero image. Each fact is its own nowrap span, so the only break opportunities
+   are the separators. */
+.size-line__part { white-space: nowrap; }
 
 .size-line__sub {
   display: block;
@@ -567,7 +668,7 @@ export function render(ctx) {
           class: 'badge size-fit',
           type: 'button',
           'aria-live': 'polite',
-          onClick: () => openCalibration(ctx)
+          onClick: () => calibrate()
         })
   );
   const fitBar = el('div', { class: 'size-stage__top' }, fitBadge);
@@ -577,8 +678,8 @@ export function render(ctx) {
   const ghostFigure = svgFigure('size-figure--ghost');
   const nowFigure = svgFigure('size-figure--now');
 
-  /* The ghost draws *after* the fill, so last week reads as a dashed ring
-     sitting inside this week rather than as a second baby standing beside it. */
+  /* The ghost draws *after* the fill, so last week's contour sits on top of
+     this week rather than being buried under it. */
   const headMark = el('span', { class: 'size-life-mark size-life-mark--head', hidden: true }, 'head');
   const footMark = el('span', { class: 'size-life-mark size-life-mark--foot', hidden: true }, '');
   const railThumb = el('span', { class: 'size-life-rail__thumb' });
@@ -590,9 +691,18 @@ export function render(ctx) {
 
   /* One line carrying what the screen is actually about: how long, measured
      which way, how heavy — and the fruit, warmly, on the line below. */
-  const statLine = el('p', { class: 'size-line' }, '');
+  /* Three facts, three nowrap spans, so the line can only ever break at a
+     separator — never inside "7 lb 10 oz" or "a small pumpkin 🎃". */
+  const statLine = el('p', { class: 'size-line' });
+  const lenChunk = el('span', { class: 'size-line__part' }, '');
+  const wtChunk = el('span', { class: 'size-line__part' }, '');
+  const cmpChunk = el('span', { class: 'size-line__part' }, '');
+  /* The separators sit *between* the spans, not inside them: a space locked
+     inside a nowrap span is not a break opportunity, and the line would then
+     have none at all and run off under the Life-size chip. */
+  const cmpSep = el('span', {}, '');
   const compareLine = el('span', { class: 'size-line__sub' }, '');
-  statLine.append(compareLine);
+  statLine.append(lenChunk, ' · ', wtChunk, cmpSep, cmpChunk, compareLine);
 
   const lifeBtn = /** @type {HTMLElement} */ (
     el(
@@ -722,13 +832,12 @@ export function render(ctx) {
     const stagePadY = num(stageStyle.paddingTop) + num(stageStyle.paddingBottom);
     const stagePadX = num(stageStyle.paddingLeft) + num(stageStyle.paddingRight);
     const stageBorderY = num(stageStyle.borderTopWidth) + num(stageStyle.borderBottomWidth);
-    /* The badge band on top is frame. The bottom overlay is mostly frame too —
-       but its top strip is pure gradient, and a foot that reaches into it
-       dissolves rather than being cut, so only the opaque part is reserved. */
+    /* The badge is overlaid, so it is no longer frame — it costs the picture
+       nothing. The bottom band is reserved in full: the figure used to be
+       allowed to bleed 24 px into a 23 px fade, which erased the heel exactly
+       where the stat line claims to measure it. */
     const footH = foot.getBoundingClientRect().height;
-    const topH = fitBar.getBoundingClientRect().height;
-    const frame =
-      stagePadY + stageBorderY + topH + Math.max(0, footH - FOOT_BLEED_PX);
+    const frame = stagePadY + stageBorderY + footH;
 
     const availH = Math.max(
       MIN_AVAILABLE_PX,
@@ -798,10 +907,10 @@ export function render(ctx) {
     const fruit =
       withArticle(row.comparison.name) +
       (row.comparison.emoji ? ` ${row.comparison.emoji}` : '');
-    statLine.firstChild.nodeValue =
-      `${formatLength(row.lengthMm, units)} ${basisLabel(row.basis)} · ` +
-      `${formatWeight(row.weightG, units)}` +
-      (nickname ? '' : ` · ${fruit}`);
+    lenChunk.textContent = `${formatLength(row.lengthMm, units)} ${basisLabel(row.basis)}`;
+    wtChunk.textContent = formatWeight(row.weightG, units);
+    cmpSep.textContent = nickname ? '' : ' · ';
+    cmpChunk.textContent = nickname ? '' : fruit;
     /* The Size tab is the screen a grandparent gets shown — it should know the
        baby's name too. That sentence earns a second line; without a nickname
        the fruit is already on the first one, and the line is not repeated. */
@@ -862,20 +971,31 @@ export function render(ctx) {
     const pct = scalePercent(fit);
     const contentH = nowLayer.bodyH * applied;
 
-    place(nowFigure, nowLayer, applied, 0);
-    /* Both layers share the crown anchor and one uniform factor, so last week
-       lands strictly inside this week: a tree ring, not a double exposure. */
-    if (ghostLayer) place(ghostFigure, ghostLayer, applied, 0);
+    place(nowFigure, nowLayer, applied, 0, 0);
+    /* The now figure keeps its crown pinned to the top of the canvas, because
+       life-size scrolls from the head. The ghost is centred on the now
+       figure's box instead: anchored on the crown — a point that sits *on* the
+       outline — the smaller shape slid up and inward and poked out along the
+       whole front, which read as a misregistered double exposure. Centred, it
+       lands as a ring. */
+    if (ghostLayer) {
+      place(
+        ghostFigure,
+        ghostLayer,
+        applied,
+        0,
+        ((nowLayer.bodyH - ghostLayer.bodyH) * applied) / 2
+      );
+    }
     ghostFigure.show(Boolean(ghostLayer) && !life);
 
-    /* Once the baby has outgrown the screen the frame is pinned to the room
-       available, so the picture never marches up and down under the user's
-       thumb. While it still fits — weeks 4 to about 15 — the frame hugs the
-       figure instead, with a floor, so week 8 is a small baby in a small stage
-       rather than 96 px of silhouette adrift in 500 px of nothing. */
-    const stageH = outgrown
-      ? availH
-      : Math.min(availH, Math.max(MIN_HUG_PX, contentH + 96));
+    /* The frame is the room available, always. Hugging the figure while it
+       still fitted walked the scrubber, the stats and the Life-size chip ~220
+       px down the screen between week 8 and week 17 — under the user's own
+       thumb — and made the two states look like two different screens. An
+       early week is a small baby matted in a calm, constant frame, which is
+       the honest picture anyway. */
+    const stageH = availH;
 
     stage.style.height = `${Math.round(stageH + frameY)}px`;
     canvas.style.height = `${Math.round(contentH)}px`;
@@ -908,14 +1028,24 @@ export function render(ctx) {
     const toHeel = footMark.textContent === 'heel' ? 'head to heel' : 'head to bottom';
 
     /* Outgrowing the screen is one of the few genuine milestones this app can
-       mark, so the week it happens says so. */
-    const justOutgrew =
-      outgrown &&
-      state.previousWeek !== null &&
-      state.previousWeek < state.week &&
-      fitsAt(state.previousWeek, availH, availW);
+       mark, so the week it happens says so — on a cold open of that week too,
+       not only when the user happened to scrub into it. It is "the first week
+       that no longer fits", which is a fact about the week and the screen, so
+       it needs neither session history nor a calibration. */
+    const justOutgrew = outgrown && fitsAt(state.week - 1, availH, availW);
 
-    if (!outgrown) {
+    if (revealUntil > Date.now() && calibrated) {
+      /* The user has just made the drawing physically true. That deserves a
+         beat of its own before the screen goes back to reporting. */
+      setBadge(
+        'true',
+        nickname
+          ? `There you go — this is ${nickname}, actual size.`
+          : 'There you go — this is your baby, actual size.'
+      );
+      canvas.classList.add('size-canvas--reveal');
+      scheduleRevealEnd();
+    } else if (!outgrown) {
       if (calibrated) {
         /* The reward for calibrating belongs here, on the badge the user came
            for — not on a grey line below the fold. */
@@ -932,10 +1062,13 @@ export function render(ctx) {
          words, not in a colour that means "this is true size". */
       setBadge('scaled', `Week ${state.week} — your baby just outgrew the screen 🎉`);
     } else if (calibrated) {
+      /* Steady state. The milestone belongs to the week it happened in; left
+         on every week after it, "your baby outgrew the screen 🎉" stopped
+         being a milestone and became a header. */
       setBadge('scaled', [
         'Shown at ',
         el('span', { class: 'size-fit__pct' }, `${pct}%`),
-        ' — your baby outgrew the screen 🎉'
+        ' of actual size'
       ]);
     } else {
       setBadge('scaled', [
@@ -953,6 +1086,47 @@ export function render(ctx) {
     );
 
     canvas.classList.add('size-canvas--ready');
+  }
+
+  /** @type {ReturnType<typeof setTimeout>|null} */
+  let revealTimer = null;
+
+  /**
+   * Let the reveal expire on its own, then repaint the badge with whatever the
+   * screen actually says. Idempotent — `relayout()` may run many times while
+   * the reveal is up.
+   * @returns {void}
+   */
+  function scheduleRevealEnd() {
+    if (revealTimer) return;
+    revealTimer = setTimeout(() => {
+      revealTimer = null;
+      revealUntil = 0;
+      if (screen.isConnected) relayout();
+    }, Math.max(0, revealUntil - Date.now()) + 30);
+  }
+
+  /**
+   * Open calibration, and arrange for the screen to greet the result. Saving
+   * re-renders the whole app, so the moment is parked at module scope and this
+   * screen's successor picks it up on its first measurement; when no re-render
+   * happens, this screen picks it up itself.
+   * @returns {void}
+   */
+  function calibrate() {
+    openCalibration(
+      /** @type {any} */ (
+        Object.assign(Object.create(ctx), {
+          onSave: () => {
+            revealUntil = Date.now() + REVEAL_MS;
+            if (screen.isConnected) {
+              canvas.classList.add('size-canvas--reveal');
+              relayout();
+            }
+          }
+        })
+      )
+    );
   }
 
   /**
@@ -1005,15 +1179,18 @@ export function render(ctx) {
    * @param {{ sil: Silhouette, k: number }} layer
    * @param {number} applied The fit factor in force.
    * @param {number} dx Sideways nudge in final CSS pixels.
+   * @param {number} dy Downward nudge in final CSS pixels. The translate runs
+   *   before the scale in the transform, so both nudges are in final pixels.
    * @returns {void}
    */
-  function place(figure, layer, applied, dx) {
+  function place(figure, layer, applied, dx, dy) {
     const crown = layer.sil.crownY;
     const s = layer.k * applied;
     const style = /** @type {SVGElement & { style: CSSStyleDeclaration }} */ (figure.svg).style;
     style.transformOrigin = `50% ${crown}px`;
     style.transform =
-      `translate(calc(-50% + ${dx.toFixed(2)}px), ${-crown}px) scale(${s})`;
+      `translate(calc(-50% + ${dx.toFixed(2)}px), ${(-crown + dy).toFixed(2)}px) ` +
+      `scale(${s})`;
   }
 
   /**
@@ -1034,9 +1211,14 @@ export function render(ctx) {
   /**
    * The earlier week to nest inside this one, or `null` when none qualifies.
    *
-   * It must be drawn by the same hand (same stage art), measured by the same
-   * ruler (crown-rump and crown-heel compare nothing), and be small enough
-   * that the growth rim is a shape rather than a hairline.
+   * It must be measured by the same ruler (crown-rump and crown-heel compare
+   * nothing — that is a hard stop) and be small enough that the growth ring is
+   * a shape rather than a hairline. Crossing into an earlier stage's art is
+   * allowed: each layer is drawn from its own silhouette at its own true-size
+   * scale, so the comparison stays honest, and refusing it left every week
+   * from 20 to 42 with nothing to see — a third of a pregnancy where dragging
+   * the scrubber animated a number and nothing else. The walk stops ten weeks
+   * back so the caption still means something.
    * @param {number} week
    * @returns {number|null}
    */
@@ -1044,11 +1226,10 @@ export function render(ctx) {
     const now = SIZE_TABLE[week];
     const sil = silhouetteForWeek(week);
     if (!now || !sil) return null;
-    for (let w = week - 1; w >= Math.max(MIN_CONTENT_WEEK, sil.minWeek); w -= 1) {
+    for (let w = week - 1; w >= Math.max(MIN_CONTENT_WEEK, week - 10); w -= 1) {
       const before = SIZE_TABLE[w];
       if (!before || before.basis !== now.basis) return null;
-      const art = silhouetteForWeek(w);
-      if (!art || art.id !== sil.id) return null;
+      if (!silhouetteForWeek(w)) continue;
       if (before.lengthMm / now.lengthMm <= GHOST_MAX_RATIO) return w;
     }
     return null;
@@ -1078,6 +1259,8 @@ export function render(ctx) {
   function setWeek(week, fromScrubber) {
     const next = contentWeekFor(week);
     if (next === state.week) return;
+    /* Moving on ends the reveal: it belonged to the week it was granted on. */
+    revealUntil = 0;
     state.previousWeek = state.week;
     state.week = next;
     session = { week: next, forDue: dueForSession };
@@ -1139,12 +1322,18 @@ export function render(ctx) {
   };
 
   const onScrollerScroll = () => {
+    /* The top fade is a scroll shadow: it means "there is more above", so it
+       may not be painted until there is. */
+    scroller.classList.toggle('is-scrolled', scroller.scrollTop > 2);
     if (state.lifeSize) paintRail();
   };
+
+  const onRevealEnd = () => canvas.classList.remove('size-canvas--reveal');
 
   window.addEventListener('resize', onViewportChange);
   window.addEventListener('orientationchange', onRotate);
   scroller.addEventListener('scroll', onScrollerScroll, { passive: true });
+  canvas.addEventListener('animationend', onRevealEnd);
 
   /**
    * Drop every listener this render created. `main.js` calls it before the
@@ -1156,6 +1345,11 @@ export function render(ctx) {
     window.removeEventListener('resize', onViewportChange);
     window.removeEventListener('orientationchange', onRotate);
     scroller.removeEventListener('scroll', onScrollerScroll);
+    canvas.removeEventListener('animationend', onRevealEnd);
+    if (revealTimer) {
+      clearTimeout(revealTimer);
+      revealTimer = null;
+    }
     if (observer) {
       observer.disconnect();
       observer = null;
@@ -1262,16 +1456,17 @@ function isTrustedCalibration(settings) {
 }
 
 /**
- * The scrubber's one-line hint. It only names the nested shape on the weeks
- * where one is actually drawn — the app must never point at something that
- * isn't on screen.
- * @param {number|null} ghostWeek The week drawn inside this one, if any.
+ * The scrubber's one-line hint. It only names the nested outline on the weeks
+ * where one is available — the app must never point at something that isn't on
+ * screen — and it says the outline *appears* on the drag, because that is when
+ * it does: at rest the screen holds one silhouette and nothing else.
+ * @param {number|null} ghostWeek The week traced inside this one, if any.
  * @returns {string}
  */
 function hintFor(ghostWeek) {
   return ghostWeek === null
     ? 'Drag to sweep the weeks and watch your baby grow.'
-    : `Drag to sweep the weeks — the paler shape inside is week ${ghostWeek}.`;
+    : `Drag to sweep the weeks — week ${ghostWeek} traces along inside.`;
 }
 
 /**

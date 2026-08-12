@@ -68,24 +68,30 @@ export const SILHOUETTES = [
     /**
      * Early fetus, still tightly curled — and the shape the app shows for ten
      * of the weeks people open it hardest, so it is drawn to landmarks rather
-     * than by eye. Two things stop it reading as a two-lobed peanut:
+     * than by eye. Four of them stop it reading as a two-lobed peanut:
      *
-     * - a **short, wide neck**. The nape sits at x ≈ 33.4 and the throat at
-     *   x ≈ 12.4 (y ≈ 46), so the neck is ~21 of the head's ~32 units — 66%,
-     *   crossed in six units of height. A narrow pinch run over fifteen units
-     *   is the pinch between two beads; this is a neck.
+     * - a **head that is the anchor mass**: a near-round skull 32 units across
+     *   (x 5.4 → 37.4) over the top third of the drawing, with the trunk kept
+     *   to ~35 units at its widest so the lower mass no longer out-weighs it.
+     * - a **short, narrow neck**. The nape sits at x ≈ 31.8 and the throat at
+     *   x ≈ 17.6 (y ≈ 46), so the neck is ~14 units — 44% of the head, crossed
+     *   in six units of height. A wide pinch run over fifteen units is the
+     *   waist between two beads; this is a neck.
      * - a **face in profile**: forehead (y ≈ 17), brow (y ≈ 26), nose apex
-     *   (y ≈ 31), lip (y ≈ 35) and chin (y ≈ 41). One of the two masses now
+     *   (y ≈ 32), lip (y ≈ 37) and chin (y ≈ 42). One of the two masses now
      *   says out loud which one it is.
+     * - a **front that reads as limbs**, not as a belly: the chest hollows
+     *   back to x ≈ 17.8 (y ≈ 54), a forearm swells out at y ≈ 62, the drawn-up
+     *   knee is the leftmost point of the whole drawing at y ≈ 81, a notch
+     *   cuts back to x ≈ 16 at y ≈ 93, and the tucked heel sits below it at
+     *   y ≈ 103. Three convexities separated by two real notches are what say
+     *   "curled" rather than "bust".
      *
-     * The BACK (right) is one unbroken convex sweep — nape, shoulder, spine
-     * apex at y ≈ 85, rump — because an uninterrupted spine is what says
-     * "curled". The FRONT (left) carries the limbs: a chest that hollows in to
-     * the knee drawn up at y ≈ 79 (the leftmost point of the drawing), a notch
-     * at y ≈ 92, and the tucked heel below it at y ≈ 102.
+     * The BACK (right) stays one unbroken convex sweep — nape, shoulder, spine
+     * apex at y ≈ 77 — and then tapers in to the rump, so the whole figure
+     * closes like a comma instead of standing on a pedestal.
      *
-     * The head is ~34 of the 111-unit crown-rump span (31%), correct for this
-     * stage. Curled is the honest pose here, because these weeks are measured
+     * Curled is the honest pose here, because these weeks are measured
      * crown-rump, and the box is a tight bound on the art: the outline ends in
      * a rounded rump tangent to y = 117.
      */
@@ -94,26 +100,28 @@ export const SILHOUETTES = [
     maxWeek: 19,
     viewBox: { w: 45, h: 118 },
     path:
-      'M20 6 C27.6 6 33.6 11.4 35.2 20 ' +
-      'C36.4 26.2 36.2 32.6 35 38.2 ' +
-      'C34.4 41.8 33 44.2 33.4 47.8 ' +
-      'C34 52.2 37.6 55.6 39.4 60.6 ' +
-      'C42 67.4 43.4 76.4 43.2 84.6 ' +
-      'C43 94.6 40.4 105 36 111 ' +
-      'C33 115.2 29 117 24.6 117 ' +
-      'C20.2 117 16.6 115.2 13.8 112.2 ' +
-      'C10.6 108.8 8 106 7.4 102.4 ' +
-      'C6.8 98.6 13 96.6 13.6 91.6 ' +
-      'C14.2 86.2 5.8 85 3.4 78.6 ' +
-      'C1.8 74.2 3.6 67.4 7 62.2 ' +
-      'C9.6 58.4 12.4 55 12.8 50.6 ' +
-      'C13 48.4 13 46.6 12.4 44.8 ' +
-      'C11.6 42.6 10 42.6 9 40.6 ' +
-      'C8 38.6 8.6 37 7.8 35.4 ' +
-      'C6.6 33.2 3.6 33.8 3.6 31 ' +
-      'C3.6 28.4 7 28.8 6.8 26 ' +
-      'C6.6 22.4 4.2 20.8 4.4 17.2 ' +
-      'C4.7 11 12.4 6 20 6 Z',
+      'M22.5 6 C30.2 6 36.2 12 37.4 20 ' +
+      'C38.4 26.6 37.6 33.6 36.2 39.4 ' +
+      'C35.4 42.6 31.6 43 31.8 46.4 ' +
+      'C32 50.4 35.6 53.6 37.2 58.4 ' +
+      'C39.2 64.4 40.8 70.4 40.6 76.6 ' +
+      'C40.4 84 38 91.6 35.6 98 ' +
+      'C33.4 104 31 110.6 27.4 114.6 ' +
+      'C26 116.2 24.6 117 22.6 117 ' +
+      'C20.6 117 17.4 116 14.8 113 ' +
+      'C12.4 110.2 9.6 107 9.2 103.2 ' +
+      'C8.8 99.4 15.2 98.2 16 93.4 ' +
+      'C16.8 87.6 8.6 86 5.6 80.6 ' +
+      'C3 76 10.6 73 14.6 69.2 ' +
+      'C14.4 66.4 12.4 64.6 12.2 62 ' +
+      'C12 59.2 16.8 57.8 17.8 54.2 ' +
+      'C18.4 51.4 17.6 48.8 17.6 46.4 ' +
+      'C17.6 44.2 13.6 44.8 12.4 42.4 ' +
+      'C11.2 40 11.6 38.4 10.6 36.8 ' +
+      'C9.2 34.4 5.4 35 5.4 31.8 ' +
+      'C5.4 29 9.2 29.4 9 26.4 ' +
+      'C8.8 22.8 5.8 21.2 6 17.2 ' +
+      'C6.3 10.4 14.6 6 22.5 6 Z',
     crownY: 6,
     rumpY: 117,
     heelY: null
