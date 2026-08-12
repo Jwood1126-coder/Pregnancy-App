@@ -210,8 +210,8 @@ button.size-fit:active { transform: scale(0.98); transition-duration: 60ms; }
    gutters as picture. */
 .size-stage {
   /* A column: badge, then the picture area (given an explicit height — the
-     room the baby may use), and the chip row floating over the bottom band
-     that is deliberately left below it. */
+     room the baby may use), with the numbers, the life-size control and the
+     scrubber overlaid on the scrim at the bottom. */
   flex-direction: column;
   align-items: stretch;
   justify-content: flex-start;
@@ -800,7 +800,8 @@ export function render(ctx) {
       (row.comparison.emoji ? ` ${row.comparison.emoji}` : '');
     statLine.firstChild.nodeValue =
       `${formatLength(row.lengthMm, units)} ${basisLabel(row.basis)} · ` +
-      `${formatWeight(row.weightG, units)} · ${fruit}`;
+      `${formatWeight(row.weightG, units)}` +
+      (nickname ? '' : ` · ${fruit}`);
     /* The Size tab is the screen a grandparent gets shown — it should know the
        baby's name too. That sentence earns a second line; without a nickname
        the fruit is already on the first one, and the line is not repeated. */
@@ -828,8 +829,6 @@ export function render(ctx) {
        clause — that silence is the treatment, not an omission. */
     ghostWeek = ghostWeekFor(week);
     ghostLayer = ghostWeek === null ? null : layerFor(ghostWeek);
-
-    scrub.setHint(hintFor(ghostWeek));
 
     if (nowLayer) nowFigure.draw(nowLayer.sil);
     nowFigure.show(Boolean(nowLayer));
@@ -929,7 +928,9 @@ export function render(ctx) {
     } else if (life) {
       setBadge('true', `Actual size — scroll ${toHeel}`);
     } else if (justOutgrew) {
-      setBadge('true', `Week ${state.week} — your baby just outgrew the screen 🎉`);
+      /* Neutral tone, because the render is scaled — the celebration is in the
+         words, not in a colour that means "this is true size". */
+      setBadge('scaled', `Week ${state.week} — your baby just outgrew the screen 🎉`);
     } else if (calibrated) {
       setBadge('scaled', [
         'Shown at ',
