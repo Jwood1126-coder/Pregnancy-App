@@ -38,7 +38,7 @@ const CSS = `
   appearance: none;
   display: block;
   width: 100%;
-  height: 34px;
+  height: 44px; /* the iOS minimum for the screen's primary control */
   margin: 0;
   padding: 0;
   background: transparent;
@@ -50,6 +50,8 @@ const CSS = `
 
 .size-scrub__input::-webkit-slider-runnable-track {
   height: 6px;
+  /* Centre the 6 px track in the 44 px hit box. */
+  margin-top: 19px;
   border-radius: var(--radius-pill);
   background:
     linear-gradient(to right,
@@ -62,7 +64,7 @@ const CSS = `
   appearance: none;
   width: 28px;
   height: 28px;
-  margin-top: -11px;
+  margin-top: -11px; /* half the thumb, less half the track */
   border-radius: var(--radius-pill);
   background: var(--card);
   border: 2px solid var(--accent);
@@ -110,7 +112,7 @@ const CSS = `
   white-space: nowrap;
 }
 
-.size-scrub__tick--mark { color: var(--accent); font-weight: 600; }
+.size-scrub__tick--mark { color: var(--accent-ink); font-weight: 600; }
 
 .size-scrub__tick--dot {
   width: 3px;
@@ -120,7 +122,12 @@ const CSS = `
   background: var(--hairline-strong);
 }
 
+/* The row keeps its height for the life of the screen. Removing it outright
+   on the first drag shrank the chrome by 19 px and grew the stage under the
+   user's thumb — the picture jumped on the very first scrub, on the screen
+   whose motion is supposed to feel physical. */
 .size-scrub__hint {
+  min-height: 19px;
   font-size: 12px;
   line-height: 1.4;
   color: var(--ink-soft);
@@ -128,8 +135,6 @@ const CSS = `
   padding-top: 2px;
   transition: opacity var(--dur) var(--ease);
 }
-
-.size-scrub__hint[hidden] { display: none; }
 `;
 
 /**
@@ -147,9 +152,15 @@ export function ensureScrubberStyles() {
 }
 
 /**
- * The scrubber element, with a setter so the screen can move the knob itself
- * (e.g. the "back to this week" button) without echoing a change back.
- * @typedef {HTMLElement & { setWeek: (week: number) => void }} ScrubberElement
+ * The scrubber element, with setters so the screen can move the knob itself
+ * (e.g. the "back to this week" button) without echoing a change back, and
+ * keep the hint's wording current.
+ *
+ * It also emits two bubbling events, `scrub-start` and `scrub-end`, so the
+ * screen can suppress its own transitions while a drag is live and let the
+ * figure track the thumb 1:1.
+ * @typedef {HTMLElement & { setWeek: (week: number) => void,
+ *   setHint: (text: string) => void }} ScrubberElement
  */
 
 /**
@@ -187,7 +198,8 @@ export function scrubber(options) {
       'aria-valuetext': `Week ${value}`,
       onInput: () => {
         const next = clampInt(Number(input.value), min, max);
-        if (hint && !hint.hasAttribute('hidden')) hint.setAttribute('hidden', '');
+        /* Teach once, then get out of the way — without moving anything. */
+        if (hint && hint.style.visibility !== 'hidden') hint.style.visibility = 'hidden';
         if (next === value) return;
         value = next;
         reflect();
@@ -232,6 +244,19 @@ export function scrubber(options) {
     value = next;
     reflect();
   };
+
+  node.setHint = (text) => {
+    if (hint && typeof text === 'string') hint.textContent = text;
+  };
+
+  /* Drag state, announced rather than inferred: the screen turns its own
+     transitions off between these two so the figure never lags the thumb. */
+  const emit = (/** @type {string} */ name) => {
+    node.dispatchEvent(new CustomEvent(name, { bubbles: true }));
+  };
+  input.addEventListener('pointerdown', () => emit('scrub-start'));
+  input.addEventListener('pointerup', () => emit('scrub-end'));
+  input.addEventListener('pointercancel', () => emit('scrub-end'));
 
   reflect();
   return node;

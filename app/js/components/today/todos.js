@@ -1,5 +1,5 @@
 /**
- * "This week's to-dos" — week-tagged checkboxes whose state lives in
+ * "This week’s to-dos" — week-tagged checkboxes whose state lives in
  * `settings.todosDone`.
  *
  * Toggling one writes to storage and updates that row's DOM in place. The
@@ -32,7 +32,7 @@ export function todosCard(options) {
 
   if (todos.length === 0) {
     return card(
-      { title: "This week's to-dos" },
+      { title: 'This week’s to-dos' },
       el(
         'p',
         { class: 'small muted' },
@@ -70,7 +70,7 @@ export function todosCard(options) {
   });
 
   return card(
-    { title: "This week's to-dos" },
+    { title: 'This week’s to-dos' },
     el('div', { class: 'today-todos' }, rows),
     options.browsing
       ? el('p', { class: 'small muted' }, 'You can tick these off whenever you get to them.')

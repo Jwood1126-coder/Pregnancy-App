@@ -10,7 +10,6 @@ import { el } from '../lib/dom.js';
 import { card } from '../components/card.js';
 import { disclaimer } from '../components/disclaimer.js';
 import { DIET_TAGS } from '../lib/storage.js';
-import { DEFAULT_PX_PER_MM } from '../lib/scale.js';
 import { openCalibration } from '../features/size/calibration.js';
 import { isPlausibleDueDate, dueDateBounds } from '../lib/weekMath.js';
 
@@ -48,7 +47,7 @@ export function render(ctx) {
 
   const dueInput = /** @type {HTMLInputElement} */ (
     el('input', {
-      class: 'input',
+      class: settings.dueDateISO ? 'input' : 'input input--empty',
       type: 'date',
       id: 'settings-due',
       /* Only dates that could describe a pregnancy happening now: a mistyped
@@ -187,8 +186,8 @@ export function render(ctx) {
       { class: 'field__hint' },
       calibrated
         ? 'This screen is calibrated, so the baby appears at real physical size.'
-        : `Not calibrated yet — we’re assuming about ${DEFAULT_PX_PER_MM} pixels per millimetre, ` +
-            'which is close for most phones. Calibrating takes about thirty seconds and a bank card.'
+        : 'Not calibrated yet — we’re using a typical iPhone screen, which lands close ' +
+            'for most phones. Calibrating takes about thirty seconds and any bank card.'
     ),
     el(
       'button',
@@ -254,10 +253,13 @@ export function render(ctx) {
     el(
       'div',
       { class: 'sheet__inner' },
+      /* The platform's own "this is a sheet" affordance — the style shipped
+         and was never rendered. */
+      el('div', { class: 'sheet__grabber' }),
       el(
         'header',
         { class: 'sheet__head' },
-        el('h1', { class: 'title' }, 'Settings'),
+        el('h1', { class: 'title', tabindex: '-1' }, 'Settings'),
         el(
           'button',
           { class: 'btn btn--quiet', type: 'button', onClick: () => close() },

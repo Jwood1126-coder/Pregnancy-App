@@ -20,7 +20,7 @@ export const weeks13to20 = [
   {
     week: 13,
     baby: [
-      "Your baby's proportions are starting to even out. The head has been running well ahead of the rest of the body, and now the body is catching up — the arms have already grown to match, and the legs are close behind.",
+      "Your baby’s proportions are starting to even out. The head has been running well ahead of the rest of the body, and now the body is catching up — the arms have already grown to match, and the legs are close behind.",
       'The vocal cords finish forming this week, tucked into a throat with no air in it. There is nothing to make a sound with yet, so the first cry has to wait for the first breath.',
       'Fine bones are lengthening through the arms and legs, and the spleen has joined in on making red blood cells. Hands can reach the mouth now, which is when thumb-sucking tends to start.',
       'The placenta has taken over nearly all of the hormone work your ovaries were doing early on, and it has grown into the job. It feeds your baby, carries waste away, and keeps expanding right alongside them.'
@@ -52,7 +52,7 @@ export const weeks13to20 = [
   {
     week: 14,
     baby: [
-      "Your baby's face has working muscles now, and every one of them is being tried out. Squints, frowns and grimaces come and go with no feeling behind them — this is practice, the same way a hand opens and closes.",
+      "Your baby’s face has working muscles now, and every one of them is being tried out. Squints, frowns and grimaces come and go with no feeling behind them — this is practice, the same way a hand opens and closes.",
       'A soft down called lanugo begins spreading over the skin this week. It holds warmth in while there is still no fat underneath, and most of it sheds again before birth.',
       'The roof of the mouth finishes closing, which matters for sucking now and for speech much later. The neck is lengthening too, lifting the head up off the chest so your baby looks less curled and more like a small person.'
     ],
@@ -83,7 +83,7 @@ export const weeks13to20 = [
   {
     week: 15,
     baby: [
-      "Your baby's legs have overtaken the arms in length this week, and the whole body looks longer and less folded up. The bones are hardening steadily, which is why a scan around now shows a clear little skeleton rather than a soft outline.",
+      "Your baby’s legs have overtaken the arms in length this week, and the whole body looks longer and less folded up. The bones are hardening steadily, which is why a scan around now shows a clear little skeleton rather than a soft outline.",
       'Movements are getting more coordinated: arms and legs that travel together rather than twitching on their own, and hands that find the face, the feet and the cord. The eyelids stay fused shut for now and will be for a couple of months yet, while the eyes underneath finish forming.',
       'Practice breathing has begun. Your baby pulls amniotic fluid into the lungs and pushes it back out, which does nothing for oxygen yet but builds the muscles and airways that will manage the first real breath.'
     ],
@@ -114,9 +114,9 @@ export const weeks13to20 = [
   {
     week: 16,
     baby: [
-      "The muscles along your baby's back and neck are strong enough now to hold the head up straighter instead of tucked to the chest. The arms and legs move together in a more coordinated way too — less twitch, more stretch and kick.",
+      "The muscles along your baby’s back and neck are strong enough now to hold the head up straighter instead of tucked to the chest. The arms and legs move together in a more coordinated way too — less twitch, more stretch and kick.",
       'Behind the closed lids, the eyes have started making small side-to-side movements. The pattern the scalp hair will follow is set this week, even though there is little to see up there yet.',
-      "Your baby's heart is moving a serious amount of blood every day, and the umbilical cord is thick and firmly anchored. Somewhere between now and week twenty-two, all this movement becomes strong enough for you to feel from the outside."
+      "Your baby’s heart is moving a serious amount of blood every day, and the umbilical cord is thick and firmly anchored. Somewhere between now and week twenty-two, all this movement becomes strong enough for you to feel from the outside."
     ],
     body: [
       'Quickening — the first movements you can feel — often lands in this stretch. It is easy to miss, because it feels nothing like a kick: more like a bubble rising, popcorn going off, or a fish turning over low in your belly.',
@@ -145,8 +145,8 @@ export const weeks13to20 = [
   {
     week: 17,
     baby: [
-      "Fat begins forming under your baby's skin this week. It fills out the loose, see-through look they have had until now, and it is what will hold their warmth in once they are out in the world.",
-      "The heartbeat has come under the brain's direction rather than beating on its own rhythm alone. Sweat glands are forming in the skin, and the umbilical cord is growing thicker and stronger to carry everything passing through it.",
+      "Fat begins forming under your baby’s skin this week. It fills out the loose, see-through look they have had until now, and it is what will hold their warmth in once they are out in the world.",
+      "The heartbeat has come under the brain’s direction rather than beating on its own rhythm alone. Sweat glands are forming in the skin, and the umbilical cord is growing thicker and stronger to carry everything passing through it.",
       'Your baby practices sucking and swallowing in the amniotic fluid, and the skeleton keeps trading soft cartilage for bone. The joints are sturdy enough now that a kick has some genuine push behind it.'
     ],
     body: [
@@ -156,14 +156,14 @@ export const weeks13to20 = [
     ],
     nutrition: {
       focus: 'DHA from low-mercury fish',
-      why: "Your baby's brain has just taken charge of the heartbeat, and the nerve cells doing that work are built largely out of fat — DHA above all. Two or three servings a week of oily fish — salmon, sardines, herring, trout — covers the daily 200 to 300 mg; leaner picks like cod, tilapia and shrimp are lovely low-mercury protein but carry far less DHA. An algae-oil supplement covers it without any fish at all.",
+      why: "Your baby’s brain has just taken charge of the heartbeat, and the nerve cells doing that work are built largely out of fat — DHA above all. Two or three servings a week of oily fish like salmon, sardines or trout covers the daily 200 to 300 mg, and an algae-oil supplement does the same without any fish at all.",
       eat: [
         { idea: 'Roasted salmon with lemon and potatoes', tags: ['dairy-free', 'nut-free'] },
         { idea: 'Trout baked with tomatoes, olives and a drizzle of oil', tags: ['dairy-free', 'nut-free'] },
         { idea: 'Shrimp tacos with shredded cabbage and lime', tags: ['dairy-free', 'nut-free'] },
         { idea: 'A canned light tuna sandwich with plenty of crunch', tags: ['dairy-free', 'nut-free'] },
         { idea: 'Chia pudding made with fortified soy milk — a plant omega-3 top-up', tags: ['vegetarian', 'vegan', 'dairy-free', 'nut-free', 'halal', 'kosher'] },
-        { idea: 'Ground walnut and flaxseed over yogurt or oatmeal, as a plant omega-3 top-up', tags: ['vegetarian', 'halal', 'kosher'] }
+        { idea: 'Ground walnut and flaxseed stirred through yogurt or oatmeal', tags: ['vegetarian', 'halal', 'kosher'] }
       ],
       safety: 'Wash produce well, keep raw meat away from ready-to-eat food, and refrigerate leftovers within two hours.'
     },
@@ -196,7 +196,7 @@ export const weeks13to20 = [
         { idea: 'Crisp cucumber and radish with a pinch of salt', tags: ['vegetarian', 'vegan', 'dairy-free', 'nut-free', 'halal', 'kosher'] },
         { idea: 'Oranges and grapes washed and waiting in the fridge', tags: ['vegetarian', 'vegan', 'dairy-free', 'nut-free', 'halal', 'kosher'] }
       ],
-      safety: "There's no known safe amount of alcohol in pregnancy — mocktails, sparkling water, and juice spritzers are all fair game."
+      safety: "There’s no known safe amount of alcohol in pregnancy — mocktails, sparkling water, and juice spritzers are all fair game."
     },
     todos: [
       { id: 'w18-anatomy-scan', label: 'Book your anatomy scan — the detailed ultrasound is done between weeks eighteen and twenty-two.' },
@@ -208,7 +208,7 @@ export const weeks13to20 = [
   {
     week: 19,
     baby: [
-      "A waxy white coating called vernix is spreading over your baby's skin. It waterproofs them through months of floating in fluid, and plenty of babies still wear streaks of it at birth.",
+      "A waxy white coating called vernix is spreading over your baby’s skin. It waterproofs them through months of floating in fluid, and plenty of babies still wear streaks of it at birth.",
       'The brain is marking out specialized territory this week — separate regions for smell, taste, hearing, sight and touch. Each one is beginning to wire up to the part of the body it will spend a lifetime listening to.',
       'Hair is sprouting on the scalp, and the arms and legs have settled into proportion with the rest of the body. If your baby is a girl, her ovaries already hold the beginnings of every egg she will ever have.'
     ],
@@ -219,7 +219,7 @@ export const weeks13to20 = [
     ],
     nutrition: {
       focus: 'Choline',
-      why: "Your baby's brain is mapping out the areas that will handle each of the senses, and choline supports that wiring along with the memory circuits still being laid down. The daily target is 450 mg, plenty of prenatal vitamins are light on it, and egg yolks are the easiest fix there is.",
+      why: "Your baby’s brain is mapping out the areas that will handle each of the senses, and choline supports that wiring along with the memory circuits still being laid down. The daily target is 450 mg, plenty of prenatal vitamins are light on it, and egg yolks are the easiest fix there is.",
       eat: [
         { idea: 'Two hard-boiled eggs, salted, cold from the fridge', tags: ['vegetarian', 'dairy-free', 'nut-free', 'halal', 'kosher'] },
         { idea: 'Egg salad on rye with plenty of black pepper, made at home with fully cooked eggs', tags: ['vegetarian', 'nut-free', 'halal', 'kosher'] },

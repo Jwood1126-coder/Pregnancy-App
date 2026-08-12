@@ -23,15 +23,15 @@ export const weeks29to35 = [
   {
     week: 29,
     baby: [
-      "Your baby's brain is laying down connections at a rate it will never match again — nerve cells reaching out to one another and settling into the networks that will run everything from the first breath to knowing your face.",
-      "That brain is picking up management jobs, too. It is getting better at holding your baby's temperature steady, which is part of why the fine downy hair that has been keeping them warm will start to thin out over the coming weeks.",
+      "Your baby’s brain is laying down connections at a rate it will never match again — nerve cells reaching out to one another and settling into the networks that will run everything from the first breath to knowing your face.",
+      "That brain is picking up management jobs, too. It is getting better at holding your baby’s temperature steady, which is part of why the fine downy hair that has been keeping them warm will start to thin out over the coming weeks.",
       'The bones are all in place and hardening as they take up calcium, though the skull plates stay soft and separate. Muscles are filling out, and with less room to somersault in, what you feel is turning into jabs, presses and slow rolls.',
-      "Inside those bones, the marrow is now the only source of your baby's red blood cells; the liver and spleen have handed the job over for good. It is one more thing your baby has quietly taken on for themselves."
+      "Inside those bones, the marrow is now the only source of your baby’s red blood cells; the liver and spleen have handed the job over for good. It is one more thing your baby has quietly taken on for themselves."
     ],
     body: [
       'Prenatal visits usually move to every two weeks around now. It means more appointments in the calendar, and it also means hearing that heartbeat twice as often.',
       'Heartburn, breathlessness on the stairs and a bladder that feels permanently full all trace back to the same thing: there is less room in the middle of you than there used to be. Smaller meals, an extra pillow at night, and staying upright for a while after eating help more than anything drastic.',
-      "This is a good week to learn your baby's rhythm. Pick a time when they are usually lively, settle somewhere comfortable, and count movements — most babies reach ten well inside two hours. Knowing their normal is what makes a real change easy to spot and worth a phone call."
+      "This is a good week to learn your baby’s rhythm. Pick a time when they are usually lively, settle somewhere comfortable, and count movements — most babies reach ten well inside two hours. Knowing their normal is what makes a real change easy to spot and worth a phone call."
     ],
     nutrition: {
       focus: 'Choline',
@@ -55,7 +55,7 @@ export const weeks29to35 = [
   {
     week: 30,
     baby: [
-      "Your baby's eyes can tell light from dark, and the pupils widen and narrow the way yours do. Hold your belly to a sunny window and you may get an answer — some babies turn toward the brightness, others squirm away from it.",
+      "Your baby’s eyes can tell light from dark, and the pupils widen and narrow the way yours do. Hold your belly to a sunny window and you may get an answer — some babies turn toward the brightness, others squirm away from it.",
       'The soft down called lanugo is starting to disappear now that a layer of fat and a better-run internal thermostat can keep your baby warm. Underneath it, the skin is smoothing out and losing the last of its see-through look.',
       'Practice breathing has settled into a steadier rhythm, the diaphragm rising and falling as your baby draws amniotic fluid in and pushes it back out. There is no air down there yet, but the muscles are learning the motion they will need in one go.',
       'The grip is getting genuinely strong, and the fingernails have grown out to the very tips of those small fingers. There is a fair chance your baby arrives needing a trim.'
@@ -132,7 +132,7 @@ export const weeks29to35 = [
     ],
     nutrition: {
       focus: 'Smaller meals for heartburn',
-      why: "With your uterus pressed up under your ribs and pregnancy hormones keeping the valve at the top of your stomach relaxed, a big meal has nowhere to go but up. Five or six small ones across the day get the same food in with far less burn — and your baby's fastest weight gain is just ahead, so the food still matters.",
+      why: "With your uterus pressed up under your ribs and pregnancy hormones keeping the valve at the top of your stomach relaxed, a big meal has nowhere to go but up. Five or six small ones across the day get the same food in with far less burn — and your baby’s fastest weight gain is just ahead, so the food still matters.",
       eat: [
         { idea: 'Half a roast chicken sandwich now, the other half a couple of hours later', tags: ['dairy-free', 'nut-free'] },
         { idea: 'A small bowl of oatmeal with banana instead of a heavy breakfast', tags: ['vegetarian', 'nut-free', 'halal', 'kosher'] },
@@ -141,7 +141,7 @@ export const weeks29to35 = [
         { idea: 'Melon with cottage cheese as a late-afternoon plate', tags: ['vegetarian', 'nut-free', 'halal', 'kosher'] },
         { idea: 'Crackers and cheese before bed, sitting up a while afterward', tags: ['vegetarian', 'nut-free', 'halal', 'kosher'] }
       ],
-      safety: "There's no known safe amount of alcohol in pregnancy — mocktails, sparkling water, and juice spritzers are all fair game."
+      safety: "There’s no known safe amount of alcohol in pregnancy — mocktails, sparkling water, and juice spritzers are all fair game."
     },
     todos: [
       { id: 'w32-birth-plan', label: 'Sketch a one-page birth plan: pain relief you would like to try, who you want in the room, and what matters most if plans change.' },
@@ -185,7 +185,7 @@ export const weeks29to35 = [
   {
     week: 34,
     baby: [
-      "Your baby's lungs are in their final stretch of preparation. They are producing more surfactant, the slippery coating that keeps the tiny air sacs from sticking shut, and that work carries on through the next couple of weeks.",
+      "Your baby’s lungs are in their final stretch of preparation. They are producing more surfactant, the slippery coating that keeps the tiny air sacs from sticking shut, and that work carries on through the next couple of weeks.",
       'Fat is going on quickly. The skin has turned from red and wrinkled to smooth and pink, the cheeks have filled out, and the waxy vernix coating is getting thicker to protect all that new softness.',
       'The nervous system is maturing right alongside — steadier temperature control, a stronger suck, better coordinated movement. If your baby is a boy, the testicles have usually finished their journey down by about now.',
       'Hearing is well established, so this is a lovely time to read the same book or play the same song most evenings. Newborns often settle to sounds they first met from the inside.'
@@ -217,7 +217,7 @@ export const weeks29to35 = [
   {
     week: 35,
     baby: [
-      "Your baby's lungs are nearly ready. These last weeks are mostly about lungs and brain, and both keep maturing right up to the end — which is why the time still on the clock is worth having.",
+      "Your baby’s lungs are nearly ready. These last weeks are mostly about lungs and brain, and both keep maturing right up to the end — which is why the time still on the clock is worth having.",
       'The brain is adding weight and wiring quickly through this stretch. The kidneys are fully developed, and the liver is handling waste on its own now.',
       'There is very little spare room left. Your baby is curled up with knees drawn in and arms tucked, so instead of turning they roll, press and stretch — you are more likely to feel a foot slide across than a somersault.',
       'Most babies are head-down by now, settled low and pointed the right way. If yours has other ideas, there is still time and there are options, and your provider will walk you through them without any rush.'
@@ -229,7 +229,7 @@ export const weeks29to35 = [
     ],
     nutrition: {
       focus: 'Protein',
-      why: "These last weeks are your baby's busiest for laying down muscle and brain tissue, and protein is the raw material for both — somewhere between seventy-five and a hundred grams a day through the third trimester. Spreading it across every meal and snack right now is far kinder to a squashed stomach than loading it all into dinner.",
+      why: "These last weeks are your baby’s busiest for laying down muscle and brain tissue, and protein is the raw material for both — somewhere between seventy-five and a hundred grams a day through the third trimester. Spreading it across every meal and snack right now is far kinder to a squashed stomach than loading it all into dinner.",
       eat: [
         { idea: 'Two eggs scrambled with cheese on toast, cooked through', tags: ['vegetarian', 'nut-free', 'halal', 'kosher'] },
         { idea: 'Greek yogurt with honey and chopped walnuts', tags: ['vegetarian', 'halal', 'kosher'] },

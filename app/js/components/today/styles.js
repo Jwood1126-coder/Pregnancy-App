@@ -15,12 +15,16 @@ export const STYLE_ID = 'today-styles';
 const CSS = `
 /* --- Header ------------------------------------------------------------- */
 
+/* The same eyebrow as .section-title, differing only in colour — accent for
+   a browsing or edge state, ink-soft for an ordinary heading. Two nearly
+   identical eyebrow styles set the same word differently for no reason a
+   reader could infer. */
 .today-eyebrow {
   font-size: 13px;
   font-weight: 600;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--accent-ink);
   margin-bottom: 3px;
 }
 
@@ -34,20 +38,50 @@ const CSS = `
   display: flex;
   align-items: center;
   gap: 8px;
-  min-height: 40px;
+  min-height: 44px;
   padding: 0 2px;
 }
 
-.today-nav__spacer { flex: 1 1 auto; }
+/* The row used to be two chevrons and 250 px of nothing. The nothing is now
+   the journey: a silent sage track that fills as the weeks go by, so the one
+   thing a parent wants at a glance finally has a visual form. */
+.today-nav__spacer {
+  flex: 1 1 auto;
+  align-self: center;
+  height: 4px;
+  margin-right: 10px;
+  border-radius: var(--radius-pill);
+  background: var(--accent-soft);
+  overflow: hidden;
+}
+
+.today-nav__progress {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+  transition: width var(--dur) var(--ease);
+}
 
 .today-nav__btn { color: var(--ink-soft); }
-.today-nav__btn[disabled] { opacity: 0.32; }
 
+/* Fade the symbol, not the chip: dropping the fill and the shadow together
+   left a pale smudge on the warm ground that read as a rendering artifact
+   rather than as a disabled control. */
+.today-nav__btn[disabled] {
+  color: color-mix(in srgb, var(--ink-soft) 35%, transparent);
+  box-shadow: none;
+  background: color-mix(in srgb, var(--card) 55%, transparent);
+}
+
+/* While browsing, the pill owns the left of the row and the chevrons the
+   right — there is no progress track between them to squeeze. */
 .today-back {
+  margin-right: auto;
   border: 0;
   cursor: pointer;
-  min-height: 34px;
-  padding: 6px 14px 6px 10px;
+  min-height: 44px;
+  padding: 10px 14px 10px 10px;
   font-family: inherit;
   animation: today-fade-in var(--dur) var(--ease) both;
 }
@@ -89,11 +123,18 @@ const CSS = `
   width: 100%;
 }
 
+/* The slot is always rendered, even when a week's comparison carries no
+   emoji — otherwise the headline jumps 56 px left on one week in four and the
+   card visibly lurches as you swipe. */
 .today-size__emoji {
   font-size: 40px;
   line-height: 1;
   flex: none;
+  width: 40px;
+  text-align: center;
 }
+
+.today-size__emoji svg { display: block; margin: 0 auto; }
 
 .today-size__text { min-width: 0; flex: 1 1 auto; }
 
@@ -102,7 +143,9 @@ const CSS = `
   font-weight: 600;
   line-height: 1.32;
   letter-spacing: -0.015em;
-  text-wrap: pretty;
+  /* text-wrap: pretty optimises the last line's length and happily strands the
+     article ("… the size of a / watermelon"); balance splits the lines evenly. */
+  text-wrap: balance;
 }
 
 .today-size__meta {
@@ -129,9 +172,10 @@ const CSS = `
   line-height: 1.25;
 }
 
+/* Caption weight: the "why" supports the list, so it must not outweigh it. */
 .today-why {
-  font-size: 16px;
-  line-height: 1.5;
+  font-size: 15px;
+  line-height: 1.55;
   color: var(--ink-soft);
   text-wrap: pretty;
 }
@@ -149,8 +193,8 @@ const CSS = `
   display: flex;
   align-items: flex-start;
   gap: 11px;
-  font-size: 16px;
-  line-height: 1.45;
+  font-size: 17px;
+  line-height: 1.5;
 }
 
 .today-eat__dot {
@@ -168,7 +212,7 @@ const CSS = `
   padding: 1px 8px;
   border-radius: var(--radius-pill);
   background: var(--accent-soft);
-  color: var(--accent);
+  color: var(--accent-ink);
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0;
@@ -188,7 +232,7 @@ const CSS = `
   background: var(--accent-soft);
 }
 
-.today-callout__icon { flex: none; color: var(--accent); margin-top: 2px; }
+.today-callout__icon { flex: none; color: var(--accent-ink); margin-top: 2px; }
 
 .today-callout__label {
   display: block;
@@ -197,7 +241,7 @@ const CSS = `
   font-weight: 700;
   letter-spacing: 0.07em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--accent-ink);
 }
 
 .today-callout__text { font-size: 15px; line-height: 1.5; text-wrap: pretty; }
@@ -206,26 +250,58 @@ const CSS = `
 
 .today-todos { display: flex; flex-direction: column; }
 
+/* An iOS row: the press highlight bleeds to the card's inner edge, so the
+   whole row is visibly the thing you are touching. With the global
+   webkit-tap-highlight-color of transparent, tapping a to-do used to give
+   literally no feedback until the box flipped. */
 .today-todo {
+  position: relative;
   display: flex;
   align-items: flex-start;
   gap: 13px;
-  padding: 12px 0;
+  margin: 0 -20px;
+  padding: 12px 20px;
+  border-radius: 10px;
   cursor: pointer;
+  transition: background-color var(--dur) var(--ease);
 }
 
-.today-todo + .today-todo { border-top: 1px solid var(--hairline); }
+.today-todo:active { background: var(--press); transition-duration: 60ms; }
 
+/* The divider is inset to the label, so it still starts where the text does
+   even though the row now runs to the card's edge. */
+.today-todo + .today-todo::before {
+  content: '';
+  position: absolute;
+  left: 20px;
+  right: 20px;
+  top: 0;
+  border-top: 1px solid var(--hairline);
+}
+
+/* The platform's own circle-check, drawn rather than borrowed: the UA checkbox
+   is a square control in a rounded, hand-made screen. */
 .today-todo__box {
+  appearance: none;
+  -webkit-appearance: none;
   flex: none;
-  width: 22px;
-  height: 22px;
-  margin: 0;
-  accent-color: var(--accent);
+  width: 24px;
+  height: 24px;
+  margin: 1px 0 0;
+  border: 1.8px solid var(--hairline-strong);
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  transition: background-color 150ms var(--ease), border-color 150ms var(--ease);
+}
+
+.today-todo__box:checked {
+  border-color: var(--accent);
+  background: var(--accent) no-repeat center/13px url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23fff' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 8.5 6.5 12 13 4.5'/%3E%3C/svg%3E");
 }
 
 .today-todo__label {
-  font-size: 16px;
+  font-size: 17px;
   line-height: 1.45;
   text-wrap: pretty;
   transition: color var(--dur) var(--ease);
@@ -256,6 +332,33 @@ const CSS = `
 
 .today-flags strong { font-weight: 700; }
 
+/* The one card that must be scannable under stress was a ten-line paragraph
+   of middot-separated symptoms. Same words, one per line. */
+.today-flags ul {
+  list-style: none;
+  margin: 8px 0 10px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.today-flags li {
+  position: relative;
+  padding-left: 14px;
+}
+
+.today-flags li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 9px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--danger);
+}
+
 .today-flags a {
   color: var(--danger);
   font-weight: 700;
@@ -265,8 +368,16 @@ const CSS = `
 
 /* --- Edge-state cards --------------------------------------------------- */
 
+/* Paired with the eyebrow on one row — alone on its own 40 px line it read as
+   a stray glyph rather than a designed mark. */
+.today-edge__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .today-mark {
-  font-size: 30px;
+  font-size: 22px;
   line-height: 1;
 }
 `;

@@ -8,10 +8,12 @@
 
 import { el } from '../lib/dom.js';
 import { disclaimer } from '../components/disclaimer.js';
+import { card } from '../components/card.js';
 import {
   dueDateFromLMP,
   isValidISODate,
   isPlausibleDueDate,
+  contentWeekFor,
   dueDateBounds,
   parseISODate,
   toISODate,
@@ -63,7 +65,8 @@ function mark() {
   return /** @type {SVGElement} */ (
     el(
       'svg',
-      { width: '38', height: '34', viewBox: '0 0 38 34', 'aria-hidden': 'true' },
+      /* Paired with the title rather than floating above it as a stray glyph. */
+      { width: '44', height: '40', viewBox: '0 0 38 34', 'aria-hidden': 'true' },
       el('path', {
         d:
           'M19 33C7.5 25.4 1 19.2 1 11.7 1 5.9 5.6 1.5 11.3 1.5c3.2 0 6.1 1.5 7.7 3.9 ' +
@@ -85,9 +88,16 @@ export function render(ctx) {
   let dateValue = '';
 
   const preview = el('p', { class: 'field__hint', id: 'welcome-date-hint' });
+
+  const startBtn = /** @type {HTMLElement} */ (
+    el('button', { class: 'btn btn--primary btn--block', type: 'button' }, 'Start')
+  );
   const error = el('p', { class: 'error-text', role: 'alert' });
 
-  const dateLabel = el('span', { class: 'field__label' }, 'Due date');
+  /* A question, not a category: the segmented control directly above already
+     says "Due date", and the same two words twice makes the app's first screen
+     look machine-assembled. */
+  const dateLabel = el('span', { class: 'field__label' }, 'When is your baby due?');
 
   const dateInput = /** @type {HTMLInputElement} */ (
     el('input', {
@@ -99,6 +109,7 @@ export function render(ctx) {
         dateValue = /** @type {HTMLInputElement} */ (e.target).value;
         error.textContent = '';
         refresh();
+        refreshStart();
       }
     })
   );
@@ -129,7 +140,12 @@ export function render(ctx) {
    */
   function refresh() {
     const isLmp = mode === 'lmp';
-    dateLabel.textContent = isLmp ? 'First day of your last period' : 'Due date';
+    dateLabel.textContent = isLmp
+      ? 'When did your last period start?'
+      : 'When is your baby due?';
+    /* An empty date control prints "mm/dd/yyyy" in full ink, which makes the
+       one required field look like the one already filled in. */
+    dateInput.classList.toggle('input--empty', !dateValue);
 
     /* Bound the picker to dates that could describe a pregnancy happening now,
        so a mistyped year is caught by the control rather than turning into a
@@ -157,6 +173,19 @@ export function render(ctx) {
   }
 
   /**
+   * The button knows what it is about to reveal, so it may as well say so —
+   * "Start" is the flattest possible word on the most emotional tap in the app.
+   * @returns {void}
+   */
+  function refreshStart() {
+    const due = resolvedDue();
+    const ready = Boolean(due) && isPlausibleDueDate(/** @type {string} */ (due));
+    startBtn.textContent = ready
+      ? `Meet week ${contentWeekFor(gaFromDays(daysPregnant(/** @type {string} */ (due))).weeks)}`
+      : 'Start';
+  }
+
+  /**
    * Switch between due-date and last-period entry.
    * @param {'due'|'lmp'} next
    * @returns {void}
@@ -167,6 +196,7 @@ export function render(ctx) {
       option.setAttribute('aria-pressed', String(option.getAttribute('data-mode') === next));
     }
     refresh();
+    refreshStart();
   }
 
   const segmented = el(
@@ -181,7 +211,9 @@ export function render(ctx) {
         'aria-pressed': 'true',
         onClick: () => setMode('due')
       },
-      'I know my due date'
+      /* The sentence above already asks the question and the field label
+         restates the choice — the long form only crowded the control. */
+      'Due date'
     ),
     el(
       'button',
@@ -192,7 +224,7 @@ export function render(ctx) {
         'aria-pressed': 'false',
         onClick: () => setMode('lmp')
       },
-      'I know my last period'
+      'Last period'
     )
   );
 
@@ -212,7 +244,9 @@ export function render(ctx) {
     ctx.update({ dueDateISO: due, nickname: nickname.value.trim() });
   }
 
+  startBtn.addEventListener('click', begin);
   refresh();
+  refreshStart();
 
   return /** @type {HTMLElement} */ (
     el(
@@ -234,34 +268,35 @@ export function render(ctx) {
         'div',
         { class: 'stack' },
         segmented,
-        el(
-          'div',
-          { class: 'field' },
-          el('label', { for: 'welcome-date' }, dateLabel),
-          dateInput,
-          preview,
-          error
-        ),
-        el(
-          'div',
-          { class: 'field' },
+        /* The same grouped form surface Settings uses, so the two screens
+           agree on what a form looks like. */
+        card(
+          {},
           el(
-            'label',
-            { class: 'field__label', for: 'welcome-nickname' },
-            'Nickname (optional)'
+            'div',
+            { class: 'field' },
+            el('label', { for: 'welcome-date' }, dateLabel),
+            dateInput,
+            preview,
+            error
           ),
-          nickname,
           el(
-            'p',
-            { class: 'field__hint' },
-            'What are you calling them for now? You can change it any time.'
+            'div',
+            { class: 'field' },
+            el(
+              'label',
+              { class: 'field__label', for: 'welcome-nickname' },
+              'Nickname (optional)'
+            ),
+            nickname,
+            el(
+              'p',
+              { class: 'field__hint' },
+              'What are you calling them for now? You can change it any time.'
+            )
           )
         ),
-        el(
-          'button',
-          { class: 'btn btn--primary btn--block', type: 'button', onClick: begin },
-          'Start'
-        )
+        startBtn
       ),
       disclaimer()
     )

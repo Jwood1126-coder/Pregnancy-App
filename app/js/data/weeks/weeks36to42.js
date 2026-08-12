@@ -24,8 +24,8 @@ export const weeks36to42 = [
   {
     week: 36,
     baby: [
-      "Your baby's lungs are finishing what they started a couple of weeks ago: making enough surfactant, the slippery film that keeps the smallest air sacs from collapsing between breaths. Most of that work wraps up right about now, and it is a good part of the reason these late weeks are worth having.",
-      'Fat is still going on day after day, filling out the cheeks and the soft creases at the wrists and knees. That padding is what will hold your baby\'s temperature steady once the world around them is room temperature instead of you.',
+      "Your baby’s lungs are finishing what they started a couple of weeks ago: making enough surfactant, the slippery film that keeps the smallest air sacs from collapsing between breaths. Most of that work wraps up right about now, and it is a good part of the reason these late weeks are worth having.",
+      'Fat is still going on day after day, filling out the cheeks and the soft creases at the wrists and knees. That padding is what will hold your baby’s temperature steady once the world around them is room temperature instead of you.',
       'The downy hair that has covered your baby all this time is nearly gone, shed into the amniotic fluid and swallowed along with it. It gathers in the bowel as a dark, sticky first stool called meconium — you will be introduced within a day or two of meeting each other.',
       'Room has run out. Most babies are head-down by this week with the head easing toward the pelvis, and your provider will feel your bump at each visit to check which way up yours is lying. If they are bottom-down, there are still options and there is still time, and your team will walk you through them.'
     ],
@@ -50,7 +50,7 @@ export const weeks36to42 = [
     todos: [
       { id: 'w36-car-seat', label: 'Install the car seat this week — rear-facing in the back seat — and look for a free inspection station nearby if you want a second pair of eyes on it.' },
       { id: 'w36-gbs', label: 'Expect the group B strep swab at a visit between now and next week; ask for the result so you already know it when the day comes.' },
-      { id: 'w36-after-hours-number', label: "Save your practice's after-hours number in both your phones, under a name you can find in a hurry." },
+      { id: 'w36-after-hours-number', label: "Save your practice’s after-hours number in both your phones, under a name you can find in a hurry." },
       { id: 'w36-tank-and-chargers', label: 'Keep the car above half a tank and the phones charging overnight from here on.' }
     ]
   },
@@ -65,12 +65,12 @@ export const weeks36to42 = [
     ],
     body: [
       'Your provider may start checking how your cervix is doing at these visits, or may not — practices differ, and both are fine. Either way, those checks tell far less about when labor will start than everyone hopes, so try not to read a fortune into the result.',
-      'It is worth knowing what real labor feels like before you need to know. Practice tightenings wander in and out and settle when you move or drink; labor contractions get longer, stronger and closer together and carry on regardless of what you do. Fluid leaking, bleeding, or a change in your baby\'s movement are all reasons to call whatever else is happening.',
+      'It is worth knowing what real labor feels like before you need to know. Practice tightenings wander in and out and settle when you move or drink; labor contractions get longer, stronger and closer together and carry on regardless of what you do. Fluid leaking, bleeding, or a change in your baby’s movement are all reasons to call whatever else is happening.',
       'Nesting may hit like a wave this week, or you may want to lie on the sofa and be left alone. Both are completely ordinary, and neither one predicts anything about the birth.'
     ],
     nutrition: {
       focus: 'Hydration, packed for labor',
-      why: 'The amniotic fluid around your baby is made and refreshed constantly — much of it now by your baby\'s own kidneys — and being well watered supports that turnover. Eight to twelve cups a day also takes the edge off practice contractions, which fire more readily when you are running dry, so it is worth practising with the things that will travel to the hospital with you.',
+      why: 'The amniotic fluid around your baby is made and refreshed constantly — much of it now by your baby’s own kidneys — and being well watered supports that turnover. Eight to twelve cups a day also takes the edge off practice contractions, which fire more readily when you are running dry, so it is worth practising with the things that will travel to the hospital with you.',
       eat: [
         { idea: 'A large insulated bottle of ice water — fill one now and pack a second in the bag', tags: ['vegetarian', 'vegan', 'dairy-free', 'nut-free', 'halal', 'kosher'] },
         { idea: 'Coconut water, chilled, for the days you are tired of plain water', tags: ['vegetarian', 'vegan', 'dairy-free', 'nut-free', 'halal', 'kosher'] },
@@ -82,7 +82,7 @@ export const weeks36to42 = [
       safety: 'Keep caffeine to 200 mg a day or less — about one 12-oz coffee. Tea, chocolate, and soda count toward the total.'
     },
     todos: [
-      { id: 'w37-labor-signs', label: 'Talk through what would send you in: contractions that get longer, stronger and closer together, fluid leaking, bleeding, or a clear change in your baby\'s movement.' },
+      { id: 'w37-labor-signs', label: 'Talk through what would send you in: contractions that get longer, stronger and closer together, fluid leaking, bleeding, or a clear change in your baby’s movement.' },
       { id: 'w37-backup-plan', label: 'Agree on a plan B — who drives if your first choice is out of town, and who looks after the house while you are away.' }
     ]
   },
@@ -90,7 +90,7 @@ export const weeks36to42 = [
   {
     week: 38,
     baby: [
-      "Your baby's brain has been growing quickly through these last weeks and carries right on after birth. What is being laid down now is the wiring for the very first jobs: feeding, staying warm, being soothed, and knowing the voices they have been listening to for months.",
+      "Your baby’s brain has been growing quickly through these last weeks and carries right on after birth. What is being laid down now is the wiring for the very first jobs: feeding, staying warm, being soothed, and knowing the voices they have been listening to for months.",
       'Fat keeps filling in under the skin, and the proportions have caught up with each other — the head and the belly are about the same distance around now. The wrinkled, just-out-of-the-bath look has smoothed out for good.',
       'Your baby opens and closes their eyes, and the color behind them is most likely a dark slate for now, whatever shade it becomes. Real eye color settles over the first months out in daylight, so the newborn photos are not the final answer.',
       'The fingernails have grown right out past the fingertips, and the grip is firm. Plenty of babies arrive having scratched their own cheek on the way, which looks alarming and heals in days.'
@@ -129,7 +129,7 @@ export const weeks36to42 = [
     ],
     body: [
       'Labor could start any day, or it could be another two or three weeks. Both are normal, and there is no way to tell which one you are in for from how you feel today.',
-      'The signals worth acting on stay the same: contractions that build a rhythm and keep it, a gush or a trickle of fluid, bleeding, or a clear change in your baby\'s movement. Your baby has less room to swing an elbow now, but the pattern should stay just as busy right up to the end.',
+      'The signals worth acting on stay the same: contractions that build a rhythm and keep it, a gush or a trickle of fluid, bleeding, or a clear change in your baby’s movement. Your baby has less room to swing an elbow now, but the pattern should stay just as busy right up to the end.',
       'Rest where you can and eat when you can. There is nothing left on the list that matters more than sleep, and the house does not need to be any cleaner than it is.'
     ],
     nutrition: {
@@ -143,7 +143,7 @@ export const weeks36to42 = [
         { idea: 'Energy bites of oats, dates and peanut butter in a tub in the fridge', tags: ['vegetarian', 'vegan', 'dairy-free', 'halal', 'kosher'] },
         { idea: 'Cheese, crackers and clementines parked within reach of the sofa', tags: ['vegetarian', 'nut-free', 'halal', 'kosher'] }
       ],
-      safety: "There's no known safe amount of alcohol in pregnancy — mocktails, sparkling water, and juice spritzers are all fair game."
+      safety: "There’s no known safe amount of alcohol in pregnancy — mocktails, sparkling water, and juice spritzers are all fair game."
     },
     todos: [
       { id: 'w39-cook-double', label: 'Cook double whatever you make this week and freeze the second half in single portions.' },
@@ -191,12 +191,12 @@ export const weeks36to42 = [
     ],
     body: [
       'Being past your date is its own small endurance event: the phone, the questions, the sense that the calendar has stopped moving. You have not done anything wrong and nothing is stuck. Most pregnancies that reach this week end within it.',
-      'The check-ins get more frequent now and more detailed: a listen to your baby\'s heartbeat across a stretch of time, a scan to measure the fluid, and a conversation about whether and when to help labor along. Ask what each one is looking at and what the choices are — this is a decision you make together with your team.',
+      'The check-ins get more frequent now and more detailed: a listen to your baby’s heartbeat across a stretch of time, a scan to measure the fluid, and a conversation about whether and when to help labor along. Ask what each one is looking at and what the choices are — this is a decision you make together with your team.',
       'The old comforts still work: walking, a warm shower, sleep whenever it is offered. Add something to watch that has nothing whatsoever to do with babies.'
     ],
     nutrition: {
       focus: 'Choline',
-      why: "Your baby's brain is still wiring itself in these extra days and leans on choline to do it — four hundred and fifty milligrams a day, with eggs by far the easiest way there. It passes straight into breast milk too, so it is a good habit to already be in when your baby arrives.",
+      why: "Your baby’s brain is still wiring itself in these extra days and leans on choline to do it — four hundred and fifty milligrams a day, with eggs by far the easiest way there. It passes straight into breast milk too, so it is a good habit to already be in when your baby arrives.",
       eat: [
         { idea: 'Two eggs any way you like them, cooked until the yolk is firm', tags: ['vegetarian', 'nut-free', 'halal', 'kosher'] },
         { idea: 'Egg salad you make yourself with hard-boiled eggs, on soft bread with plenty of pepper', tags: ['vegetarian', 'nut-free', 'halal', 'kosher'] },

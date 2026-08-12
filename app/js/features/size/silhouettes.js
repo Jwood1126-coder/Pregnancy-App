@@ -41,50 +41,79 @@ export const SILHOUETTES = [
     id: 'embryo-curl',
     minWeek: 4,
     maxWeek: 9,
-    viewBox: { w: 100, h: 106 },
+    /* The box is a tight bound on the drawing (the art spans 1.5 → 64.5 of the
+       66 units). Every empty viewBox unit is multiplied by the same `k` as the
+       baby, so slack here is width the real figure never gets to use. */
+    viewBox: { w: 66, h: 106 },
     path:
-      'M49 7 C54.2 7 61.2 8 66 11 C70.8 14 75.3 19.8 78 25 ' +
-      'C80.7 30.2 82 36.7 82 42 C82 47.3 77.8 52.3 78 57 ' +
-      'C78.2 61.7 82.8 65.2 83 70 C83.2 74.8 81.3 81.8 79 86 ' +
-      'C76.7 90.2 72.8 92.7 69 95 C65.2 97.3 60.3 99.2 56 100 ' +
-      'C51.7 100.8 47.2 100.8 43 100 C38.8 99.2 34.3 97 31 95 ' +
-      'C27.7 93 24.8 90.7 23 88 C21.2 85.3 19.7 81.7 20 79 ' +
-      'C20.3 76.3 22.5 73 25 72 C27.5 71 31.7 72 35 73 ' +
-      'C38.3 74 41.7 76.3 45 78 C48.3 79.7 51.7 82 55 83 ' +
-      'C58.3 84 62.2 85 65 84 C67.8 83 71 80 72 77 C73 74 72.5 69.3 71 66 ' +
-      'C69.5 62.7 65.5 59.5 63 57 C60.5 54.5 58.5 52.7 56 51 ' +
-      'C53.5 49.3 50.7 48.2 48 47 C45.3 45.8 42.7 45.7 40 44 ' +
-      'C37.3 42.3 34.2 40.2 32 37 C29.8 33.8 26.5 29.3 27 25 ' +
-      'C27.5 20.7 31.3 14 35 11 C38.7 8 43.8 7 49 7 Z',
+      'M30.5 7 C35.7 7 42.7 8 47.5 11 C52.3 14 56.8 19.8 59.5 25 ' +
+      'C62.2 30.2 63.5 36.7 63.5 42 C63.5 47.3 59.3 52.3 59.5 57 ' +
+      'C59.7 61.7 64.3 65.2 64.5 70 C64.7 74.8 62.8 81.8 60.5 86 ' +
+      'C58.2 90.2 54.3 92.7 50.5 95 C46.7 97.3 41.8 99.2 37.5 100 ' +
+      'C33.2 100.8 28.7 100.8 24.5 100 C20.3 99.2 15.8 97 12.5 95 ' +
+      'C9.2 93 6.3 90.7 4.5 88 C2.7 85.3 1.2 81.7 1.5 79 ' +
+      'C1.8 76.3 4 73 6.5 72 C9 71 13.2 72 16.5 73 ' +
+      'C19.8 74 23.2 76.3 26.5 78 C29.8 79.7 33.2 82 36.5 83 ' +
+      'C39.8 84 43.7 85 46.5 84 C49.3 83 52.5 80 53.5 77 ' +
+      'C54.5 74 54 69.3 52.5 66 C51 62.7 47 59.5 44.5 57 ' +
+      'C42 54.5 40 52.7 37.5 51 C35 49.3 32.2 48.2 29.5 47 ' +
+      'C26.8 45.8 24.2 45.7 21.5 44 C18.8 42.3 15.7 40.2 13.5 37 ' +
+      'C11.3 33.8 8 29.3 8.5 25 C9 20.7 12.8 14 16.5 11 ' +
+      'C20.2 8 25.3 7 30.5 7 Z',
     crownY: 7,
     rumpY: 95,
     heelY: null
   },
   {
     /**
-     * Early fetus, still tightly curled. The head is close to half the
-     * crown-rump span, the spine is rounded, and the limbs read as soft
-     * swells: a knee drawn up toward the chest, a tucked foot, a hollow at
-     * the chest. Curled is the honest pose here, because these weeks are
-     * measured crown-rump.
+     * Early fetus, still tightly curled — and the shape the app shows for ten
+     * of the weeks people open it hardest, so it is drawn to landmarks rather
+     * than by eye. Two things stop it reading as a two-lobed peanut:
+     *
+     * - a **short, wide neck**. The nape sits at x ≈ 33.4 and the throat at
+     *   x ≈ 12.4 (y ≈ 46), so the neck is ~21 of the head's ~32 units — 66%,
+     *   crossed in six units of height. A narrow pinch run over fifteen units
+     *   is the pinch between two beads; this is a neck.
+     * - a **face in profile**: forehead (y ≈ 17), brow (y ≈ 26), nose apex
+     *   (y ≈ 31), lip (y ≈ 35) and chin (y ≈ 41). One of the two masses now
+     *   says out loud which one it is.
+     *
+     * The BACK (right) is one unbroken convex sweep — nape, shoulder, spine
+     * apex at y ≈ 85, rump — because an uninterrupted spine is what says
+     * "curled". The FRONT (left) carries the limbs: a chest that hollows in to
+     * the knee drawn up at y ≈ 79 (the leftmost point of the drawing), a notch
+     * at y ≈ 92, and the tucked heel below it at y ≈ 102.
+     *
+     * The head is ~34 of the 111-unit crown-rump span (31%), correct for this
+     * stage. Curled is the honest pose here, because these weeks are measured
+     * crown-rump, and the box is a tight bound on the art: the outline ends in
+     * a rounded rump tangent to y = 117.
      */
     id: 'early-fetus-curl',
     minWeek: 10,
     maxWeek: 19,
-    viewBox: { w: 100, h: 120 },
+    viewBox: { w: 45, h: 118 },
     path:
-      'M48 6 C52.3 6 58.2 7.3 62 10 C65.8 12.7 69.7 17.7 71 22 ' +
-      'C72.3 26.3 71.3 32 70 36 C68.7 40 65.2 43.3 63 46 ' +
-      'C60.8 48.7 55.8 50 57 52 C58.2 54 66 54.3 70 58 ' +
-      'C74 61.7 79.2 67.8 81 74 C82.8 80.2 82.7 89 81 95 ' +
-      'C79.3 101 75 106.3 71 110 C67 113.7 61.3 116 57 117 ' +
-      'C52.7 118 48.5 117.2 45 116 C41.5 114.8 39.2 112.2 36 110 ' +
-      'C32.8 107.8 29 106 26 103 C23 100 18.8 95.3 18 92 ' +
-      'C17.2 88.7 18.8 85.5 21 83 C23.2 80.5 30.3 79.7 31 77 ' +
-      'C31.7 74.3 24.5 70.2 25 67 C25.5 63.8 32 60.8 34 58 ' +
-      'C36 55.2 37.7 53 37 50 C36.3 47 31.5 44.3 30 40 ' +
-      'C28.5 35.7 27 29 28 24 C29 19 32.7 13 36 10 ' +
-      'C39.3 7 43.7 6 48 6 Z',
+      'M20 6 C27.6 6 33.6 11.4 35.2 20 ' +
+      'C36.4 26.2 36.2 32.6 35 38.2 ' +
+      'C34.4 41.8 33 44.2 33.4 47.8 ' +
+      'C34 52.2 37.6 55.6 39.4 60.6 ' +
+      'C42 67.4 43.4 76.4 43.2 84.6 ' +
+      'C43 94.6 40.4 105 36 111 ' +
+      'C33 115.2 29 117 24.6 117 ' +
+      'C20.2 117 16.6 115.2 13.8 112.2 ' +
+      'C10.6 108.8 8 106 7.4 102.4 ' +
+      'C6.8 98.6 13 96.6 13.6 91.6 ' +
+      'C14.2 86.2 5.8 85 3.4 78.6 ' +
+      'C1.8 74.2 3.6 67.4 7 62.2 ' +
+      'C9.6 58.4 12.4 55 12.8 50.6 ' +
+      'C13 48.4 13 46.6 12.4 44.8 ' +
+      'C11.6 42.6 10 42.6 9 40.6 ' +
+      'C8 38.6 8.6 37 7.8 35.4 ' +
+      'C6.6 33.2 3.6 33.8 3.6 31 ' +
+      'C3.6 28.4 7 28.8 6.8 26 ' +
+      'C6.6 22.4 4.2 20.8 4.4 17.2 ' +
+      'C4.7 11 12.4 6 20 6 Z',
     crownY: 6,
     rumpY: 117,
     heelY: null

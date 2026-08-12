@@ -40,6 +40,7 @@ const PRECACHE = [
   './js/lib/scale.js',
   './js/lib/units.js',
   './js/lib/storage.js',
+  './js/lib/sheetDrag.js',
   './js/data/sizes.js',
   './js/data/weeks/index.js',
   './js/data/weeks/weeks04to12.js',

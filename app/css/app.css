@@ -7,14 +7,38 @@
 /* --- Design tokens (docs/PLAN.md, exact) --------------------------------- */
 
 :root {
+  /* The UA draws checkboxes, date pickers, wheels, carets and scrollbars
+     itself; without this it draws them all in light chrome on a near-black
+     app. One line, and every native control follows the theme. */
+  color-scheme: light dark;
+
   --bg: #FAF7F2; --card: #FFFFFF; --ink: #26221C; --ink-soft: #6E6659;
   --accent: #6F7D5C; --accent-soft: #E9EDE2; --danger: #B4552D;
   --radius: 18px;
   --shadow: 0 1px 3px rgb(38 34 28 / 0.06), 0 4px 16px rgb(38 34 28 / 0.05);
+
+  /* Sage, split into three jobs. `--accent` stays exactly the palette hue and
+     keeps painting the artwork (silhouette, scrubber track, dots). Small text
+     uses `--accent-ink`, which clears 4.5:1 on all three light grounds
+     (5.7:1 on --bg, 6.2:1 on --card, 5.2:1 on --accent-soft); solid buttons
+     use `--accent-strong`, where white type measures 5.7:1. */
+  --accent-ink: #58654A;
+  --accent-strong: #5E6B4C;
 }
 @media (prefers-color-scheme: dark) {
   :root { --bg: #161513; --card: #211F1C; --ink: #F2EFE9; --ink-soft: #A69C8D;
-          --accent: #8B9B74; --accent-soft: #2A2E24; --danger: #D97B52; }
+          --accent: #8B9B74; --accent-soft: #2F3527; --danger: #D97B52;
+          /* The raw hue measures only 4.24:1 on the shipped `--accent-soft`
+             (#2F3527), which is below AA for every tinted-on-tinted label in
+             the app. Small text gets its own lighter sage: 5.15:1 on
+             --accent-soft, 6.69:1 on --card, 7.3:1 on --bg. The artwork keeps
+             `--accent` exactly. */
+          --accent-ink: #9BAB84;
+          --accent-strong: var(--accent);
+          /* Elevation has to be redesigned, not inverted: a warm-black shadow
+             is invisible on a warm-black ground, so shadows go true black and
+             deep, and surfaces additionally carry a hairline edge. */
+          --shadow: 0 1px 2px rgb(0 0 0 / 0.5), 0 8px 24px rgb(0 0 0 / 0.35); }
 }
 
 /* --- Derived tokens ------------------------------------------------------ */
@@ -34,6 +58,17 @@
   --dur: 200ms;
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
+  /* In light, soft shadows carry every edge; in dark they cannot, so surfaces
+     grow a hairline instead. Transparent here keeps the light look untouched. */
+  --edge: transparent;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* 5% of a pale ink over a near-black card is not a press; 10% is. */
+    --press: color-mix(in srgb, var(--ink) 10%, transparent);
+    --edge: color-mix(in srgb, var(--ink) 8%, transparent);
+  }
 }
 
 /* --- Reset & base -------------------------------------------------------- */
@@ -65,7 +100,19 @@ body {
 h1, h2, h3, p, ul, ol, figure { margin: 0; }
 ul, ol { padding-left: 1.15em; }
 button, input, select, textarea { font: inherit; color: inherit; }
-a { color: var(--accent); }
+a { color: var(--accent-ink); }
+
+/* Chrome is chrome: a long press on a tab, a pill or the week numeral must not
+   raise iOS's selection handles and Copy/Look-Up bubble — the surest tell that
+   an iPhone user is looking at a web page. Prose, food ideas, the red-flag list
+   and the stats stay selectable, because those are worth copying. */
+.tabbar, .btn, .pill, .badge, .chip, .segmented, .card__toggle,
+.week-numeral, .title, .section-title, .row,
+.size-chip, .size-scrub, .size-fit, .size-title, .today-eyebrow {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
 
 :focus-visible {
   outline: 2px solid var(--accent);
@@ -104,6 +151,8 @@ a { color: var(--accent); }
 }
 
 .app-main--no-tabs {
+  display: flex;
+  flex-direction: column;
   padding-bottom: calc(var(--safe-bottom) + 32px);
 }
 
@@ -190,6 +239,7 @@ a { color: var(--accent); }
 
 .card {
   background: var(--card);
+  border: 1px solid var(--edge);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   padding: 18px 20px;
@@ -206,7 +256,12 @@ a { color: var(--accent); }
   transition: transform var(--dur) var(--ease), background-color var(--dur) var(--ease);
 }
 
-.card--tap:active { transform: scale(0.985); background: var(--press); }
+/* iOS highlights on touch-down almost instantly and releases slowly. */
+.card--tap:active {
+  transform: scale(0.985);
+  background: var(--press);
+  transition-duration: 60ms;
+}
 
 .card--accent {
   background: var(--accent-soft);
@@ -227,7 +282,11 @@ a { color: var(--accent); }
 .card__toggle {
   background: none;
   border: 0;
-  padding: 0;
+  /* A 44 pt hit box, pulled back out of the card's own rhythm so the row still
+     sits where it looks like it sits. */
+  min-height: 44px;
+  margin: -10px 0;
+  padding: 10px 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -257,7 +316,7 @@ a { color: var(--accent); }
   font-weight: 600;
   letter-spacing: -0.01em;
   background: var(--accent-soft);
-  color: var(--accent);
+  color: var(--accent-ink);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -266,11 +325,11 @@ a { color: var(--accent); }
   transition: transform var(--dur) var(--ease), opacity var(--dur) var(--ease);
 }
 
-.btn:active { transform: scale(0.98); }
+.btn:active { transform: scale(0.98); transition-duration: 60ms; }
 .btn[disabled] { opacity: 0.45; cursor: default; transform: none; }
 
 .btn--primary {
-  background: var(--accent);
+  background: var(--accent-strong);
   color: #FFFFFF;
   box-shadow: var(--shadow);
 }
@@ -279,7 +338,7 @@ a { color: var(--accent); }
 
 .btn--quiet {
   background: transparent;
-  color: var(--accent);
+  color: var(--accent-ink);
   min-height: 44px;
   padding: 10px 12px;
 }
@@ -290,9 +349,10 @@ a { color: var(--accent); }
   background: var(--card);
   color: var(--ink-soft);
   box-shadow: var(--shadow);
-  width: 40px;
-  height: 40px;
-  min-height: 40px;
+  /* 44 pt: the iOS minimum, and these are the week chevrons and the gear. */
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
   padding: 0;
   border-radius: var(--radius-pill);
   flex: none;
@@ -305,7 +365,7 @@ a { color: var(--accent); }
   padding: 5px 12px;
   border-radius: var(--radius-pill);
   background: var(--accent-soft);
-  color: var(--accent);
+  color: var(--accent-ink);
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0;
@@ -335,12 +395,14 @@ a { color: var(--accent); }
   appearance: none;
   -webkit-appearance: none;
   width: 100%;
-  min-height: 48px;
+  min-height: 50px; /* the iOS field height */
   padding: 12px 14px;
   font-size: 17px; /* 17px keeps iOS from zooming on focus */
-  background: var(--card);
+  /* A field sitting on a `--card` card cannot also be `--card`: white on white
+     with a hairline is not an affordance. Recessed, so it reads as a well. */
+  background: color-mix(in srgb, var(--ink) 4%, var(--card));
   color: var(--ink);
-  border: 1px solid var(--hairline);
+  border: 1px solid color-mix(in srgb, var(--ink) 9%, transparent);
   border-radius: var(--radius-sm);
   transition: border-color var(--dur) var(--ease);
 }
@@ -355,6 +417,25 @@ a { color: var(--accent); }
 input[type='date'].input {
   min-width: 0;
   text-align: left;
+}
+
+/* Safari gives the date value its own inner padding, which floats the text off
+   the field's baseline; this seats it like every other input's value. */
+input[type='date'].input::-webkit-date-and-time-value {
+  text-align: left;
+  margin: 0;
+  line-height: 26px;
+}
+
+/* An empty date control prints "mm/dd/yyyy" in full ink, so the field nobody
+   has filled in looks filled while the nickname placeholder beside it is
+   muted. `:placeholder-shown` doesn't match date inputs, so the screens flag
+   the empty state with a class and the format hint matches `::placeholder`. */
+input[type='date'].input--empty { color: var(--ink-soft); }
+
+input[type='date'].input--empty::-webkit-datetime-edit {
+  color: var(--ink-soft);
+  opacity: 0.75;
 }
 
 /* Segmented control (units, due-date vs last-period) */
@@ -372,11 +453,13 @@ input[type='date'].input {
   border: 0;
   border-radius: 9px;
   padding: 9px 8px;
-  min-height: 40px;
+  min-height: 44px;
   font-size: 15px;
   font-weight: 600;
   background: transparent;
-  color: var(--accent);
+  /* The accent belongs to actions, not to the option you did *not* pick: the
+     unselected side stays quiet and selection wins on contrast, as on iOS. */
+  color: var(--ink-soft);
   cursor: pointer;
   transition: background-color var(--dur) var(--ease), color var(--dur) var(--ease);
 }
@@ -401,7 +484,7 @@ input[type='date'].input {
   color: var(--ink-soft);
   border-radius: var(--radius-pill);
   padding: 8px 14px;
-  min-height: 40px;
+  min-height: 44px;
   font-size: 15px;
   font-weight: 500;
   cursor: pointer;
@@ -412,7 +495,7 @@ input[type='date'].input {
 .chip[aria-pressed='true'] {
   background: var(--accent-soft);
   border-color: transparent;
-  color: var(--accent);
+  color: var(--accent-ink);
   font-weight: 600;
 }
 
@@ -420,6 +503,7 @@ input[type='date'].input {
 
 .rows {
   background: var(--card);
+  border: 1px solid var(--edge);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   overflow: hidden;
@@ -456,10 +540,42 @@ input[type='date'].input {
   justify-content: center;
   gap: 2px;
   padding-bottom: var(--safe-bottom);
-  background: color-mix(in srgb, var(--bg) 88%, transparent);
-  backdrop-filter: saturate(160%) blur(18px);
-  -webkit-backdrop-filter: saturate(160%) blur(18px);
+  /* The base is near-opaque: an iOS tab bar never lets body text read through
+     it, and where `backdrop-filter` doesn't composite there is no blur to hide
+     behind. The frosted treatment is layered back on only where it works. */
+  background: color-mix(in srgb, var(--bg) 97%, transparent);
   border-top: 1px solid var(--hairline);
+}
+
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .tabbar {
+    /* Frosted, but never see-through enough to read a sentence through: the
+       blur is a finish, not the thing doing the hiding. */
+    background: color-mix(in srgb, var(--bg) 95%, transparent);
+    backdrop-filter: saturate(180%) blur(24px);
+    -webkit-backdrop-filter: saturate(180%) blur(24px);
+  }
+}
+
+/* iOS never fades content into a tab bar — content passes under a blurred
+   material and stays crisp until it is occluded. Where that material exists,
+   the near-opaque base already does the hiding; only the fallback needs a
+   softener, and a short one. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .tabbar::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 100%;
+    height: 10px;
+    background: linear-gradient(
+      to top,
+      var(--bg),
+      color-mix(in srgb, var(--bg) 0%, transparent)
+    );
+    pointer-events: none;
+  }
 }
 
 .tabbar__inner {
@@ -478,7 +594,7 @@ input[type='date'].input {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 3px;
+  gap: 2px;
   color: var(--ink-soft);
   font-size: 11px;
   font-weight: 600;
@@ -486,17 +602,35 @@ input[type='date'].input {
   transition: color var(--dur) var(--ease);
 }
 
-.tabbar__tab[aria-selected='true'] { color: var(--accent); }
+/* Selection wins on weight and contrast, not on hue alone — and the symbol
+   thickens with it, the way an iOS tab item fills. */
+.tabbar__tab[aria-selected='true'] {
+  color: var(--accent-ink);
+  font-weight: 700;
+}
+
 .tabbar__tab svg { display: block; }
+.tabbar__tab svg path { transition: stroke-width var(--dur) var(--ease); }
+.tabbar__tab[aria-selected='true'] svg path { stroke-width: 2.4; }
+.tabbar__tab:active { opacity: 0.55; transition-duration: 60ms; }
 
 /* --- Full-screen sheet (Settings) ---------------------------------------- */
 
+/* An iOS sheet stops short of the status bar, rounds its top corners, and
+   leaves the page visible behind it — that gap is what says "this is on top of
+   what you were doing", not "this replaced it". */
 .sheet {
   position: fixed;
-  inset: 0;
+  top: calc(var(--safe-top) + 10px);
+  left: 0;
+  right: 0;
+  bottom: 0;
   z-index: 40;
   background: var(--bg);
+  border-radius: 14px 14px 0 0;
+  box-shadow: 0 -8px 40px rgb(38 34 28 / 0.28);
   overflow-y: auto;
+  overscroll-behavior: contain; /* scrolling the sheet never scrolls the page */
   -webkit-overflow-scrolling: touch;
   transform: translateY(100%);
   transition: transform 240ms var(--ease);
@@ -505,14 +639,25 @@ input[type='date'].input {
 
 .sheet--open { transform: translateY(0); }
 
+.sheet__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 39;
+  background: rgb(0 0 0 / 0.28);
+  opacity: 0;
+  transition: opacity 240ms var(--ease);
+}
+
+.sheet__backdrop--open { opacity: 1; }
+
 .sheet__inner {
   width: 100%;
   max-width: var(--col-max);
   margin: 0 auto;
-  padding:
-    calc(var(--safe-top) + 10px)
-    var(--gutter)
-    calc(var(--safe-bottom) + 40px);
+  /* `.sheet` already sits below the safe-area inset; adding it again here
+     opened the sheet with an empty band above the grabber on every notched
+     iPhone. Flat padding, like the calibration sheet's own inner. */
+  padding: 10px var(--gutter) calc(var(--safe-bottom) + 40px);
   display: flex;
   flex-direction: column;
   gap: var(--gap);
@@ -527,12 +672,25 @@ input[type='date'].input {
 }
 
 .sheet__grabber {
+  position: relative;
   width: 38px;
   height: 5px;
   border-radius: var(--radius-pill);
   background: var(--hairline-strong);
   margin: 0 auto 6px;
+  /* The grabber is a drag handle, so the drag must not need a 5 px aim. */
+  touch-action: none;
+  cursor: grab;
 }
+
+.sheet__grabber::before {
+  content: '';
+  position: absolute;
+  inset: -12px -60px;
+}
+
+.sheet--dragging { transition: none; }
+.sheet--dragging .sheet__grabber { cursor: grabbing; }
 
 /* --- Disclaimer ---------------------------------------------------------- */
 
@@ -554,7 +712,7 @@ input[type='date'].input {
   padding: 5px 11px;
   border-radius: var(--radius-pill);
   background: var(--accent-soft);
-  color: var(--accent);
+  color: var(--accent-ink);
   font-size: 13px;
   font-weight: 600;
 }
@@ -562,6 +720,7 @@ input[type='date'].input {
 .stage {
   position: relative;
   background: var(--card);
+  border: 1px solid var(--edge);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   min-height: 220px;
@@ -575,19 +734,29 @@ input[type='date'].input {
 
 /* --- Welcome ------------------------------------------------------------- */
 
+/* The shell owns the height: `#app` is already a full-viewport flex column and
+   `.app-main` grows into it, so asking for another 100dvh here made the first
+   screen of the app taller than the screen and rubber-band. */
 .welcome {
-  min-height: 100dvh;
+  min-height: 0;
+  flex: 1 1 auto;
   display: flex;
   flex-direction: column;
   justify-content: center;
   gap: 22px;
-  padding: 32px 0 8px;
+  padding: 8px 0;
 }
+
+.welcome .stack--tight { gap: 6px; }
 
 .welcome__mark {
   font-size: 34px;
   line-height: 1;
 }
+
+/* Optical alignment: the heart's left edge should sit on the title's, not on
+   its own bounding box. */
+.welcome .stack--tight > svg { margin-left: -2px; }
 
 .stack { display: flex; flex-direction: column; gap: var(--gap); }
 .stack--tight { gap: 8px; }
@@ -596,6 +765,54 @@ input[type='date'].input {
 .error-text {
   color: var(--danger);
   font-size: 14px;
+}
+
+/* --- Dark mode: elevation, not inversion --------------------------------- */
+
+@media (prefers-color-scheme: dark) {
+  /* A near-black shadow cannot describe a raised surface on a near-black
+     ground, so state has to be carried by lightness instead: the track sinks,
+     the selected chip rises, and both carry an edge. */
+  .segmented {
+    background: color-mix(in srgb, var(--ink) 7%, var(--bg));
+  }
+
+  .segmented__option[aria-pressed='true'] {
+    background: color-mix(in srgb, var(--ink) 16%, var(--card));
+    box-shadow: none;
+    border: 1px solid color-mix(in srgb, var(--ink) 10%, transparent);
+  }
+
+  /* The sage panels are only a few per cent off the card behind them. */
+  .card--accent {
+    border-color: color-mix(in srgb, var(--accent) 26%, transparent);
+  }
+
+  .btn--primary {
+    /* White on the dark accent is 2.98:1; the app's own near-black is 6.2:1,
+       and dark ink on a light-tinted fill is the iOS convention anyway. */
+    color: var(--bg);
+  }
+
+  /* Same reasoning as the field wells in light: a recessed surface has to be
+     carried by lightness, not by a shadow nobody can see. */
+  .input { background: color-mix(in srgb, var(--ink) 7%, var(--card)); }
+
+  /* A warm-black shadow on a near-black page cannot say "this is on top of
+     what you were doing" — the sheet needs an edge and true-black depth. */
+  .sheet {
+    border-top: 1px solid color-mix(in srgb, var(--ink) 12%, transparent);
+    box-shadow: 0 -2px 4px rgb(0 0 0 / 0.6), 0 -16px 48px rgb(0 0 0 / 0.5);
+  }
+
+  .sheet__backdrop { background: rgb(0 0 0 / 0.55); }
+
+  /* The Size screen is mostly artwork, and a full-strength accent across
+     200 × 545 px is a glare panel at 3am. Knocked back toward the ground it
+     still clears 3:1 as a graphical object, and the figure keeps its value.
+     (The Size screen's own layers are tinted from this same base in its
+     scoped stylesheet, which loads after this file.) */
+  .silhouette { fill: color-mix(in srgb, var(--accent) 72%, var(--bg)); }
 }
 
 /* --- Motion preferences -------------------------------------------------- */

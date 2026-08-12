@@ -12,6 +12,8 @@ import { el } from '../lib/dom.js';
  * @property {TabId} id
  * @property {string} label
  * @property {string[]} paths SVG path `d` strings drawn as strokes in a 24×24 box.
+ * @property {{ cx: string, cy: string, r: string }} [dot] A filled dot drawn
+ *   with the paths (the calendar's "today").
  */
 
 /** The Phase 1 tabs, in order. */
@@ -19,17 +21,23 @@ export const TABS = /** @type {TabDef[]} */ ([
   {
     id: 'today',
     label: 'Today',
-    // A quiet sun: today, this morning, right now.
+    /* A calendar with today marked. The old eight-rayed sun turned into a
+       sparkle of noise at @3x and read as a brightness control. */
     paths: [
-      'M12 6.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11z',
-      'M12 1.8v2.2M12 20v2.2M4.6 4.6l1.6 1.6M17.8 17.8l1.6 1.6M1.8 12h2.2M20 12h2.2M4.6 19.4l1.6-1.6M17.8 6.2l1.6-1.6'
-    ]
+      'M4 6.5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z',
+      'M4 9.5h16M8 3v3M16 3v3'
+    ],
+    dot: { cx: '12', cy: '14', r: '1.9' }
   },
   {
     id: 'size',
     label: 'Size',
-    // A height gauge: two rules and the span between them.
-    paths: ['M5 4h14M5 20h14M12 4.8v14.4', 'M9 8l3-3 3 3M9 16l3 3 3-3']
+    /* A ruler. The old double-headed arrow between two rules read as a resize
+       handle borrowed from a drawing tool. */
+    paths: [
+      'M4.5 8.5h15a1.5 1.5 0 0 1 1.5 1.5v4a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 14v-4a1.5 1.5 0 0 1 1.5-1.5z',
+      'M7.5 8.5v3M11 8.5v4.5M14.5 8.5v3M18 8.5v4.5'
+    ]
   }
 ]);
 
@@ -52,7 +60,15 @@ function icon(tab) {
           'stroke-linecap': 'round',
           'stroke-linejoin': 'round'
         })
-      )
+      ),
+      tab.dot
+        ? el('circle', {
+            cx: tab.dot.cx,
+            cy: tab.dot.cy,
+            r: tab.dot.r,
+            fill: 'currentColor'
+          })
+        : null
     )
   );
 }

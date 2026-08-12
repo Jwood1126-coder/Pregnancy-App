@@ -23,7 +23,7 @@ export const weeks21to28 = [
   {
     week: 21,
     baby: [
-      "Your baby's bone marrow has taken over the making of red blood cells this week. The liver and spleen have been handling that job for months and will keep helping for a while yet, but the marrow inside those hardening bones is the long-term factory.",
+      "Your baby’s bone marrow has taken over the making of red blood cells this week. The liver and spleen have been handling that job for months and will keep helping for a while yet, but the marrow inside those hardening bones is the long-term factory.",
       'The gut is rehearsing digestion. Your baby swallows amniotic fluid all day, takes up a little sugar and water from it, and passes the rest along to the bowel — quiet practice for the first real feeds.',
       'Movements have turned into something you can name. The arms and legs have grown into proportion with each other, and there is enough muscle behind them now that a kick reads as a kick rather than a flutter.'
     ],
@@ -34,7 +34,7 @@ export const weeks21to28 = [
     ],
     nutrition: {
       focus: 'Fiber',
-      why: "Your baby's gut is practicing digestion this week, and yours could use a hand — pregnancy hormones slow everything down, and iron supplements slow it further. Aim for twenty-five to thirty grams of fiber a day with plenty of water alongside; fiber without the fluid can make things worse rather than better.",
+      why: "Your baby’s gut is practicing digestion this week, and yours could use a hand — pregnancy hormones slow everything down, and iron supplements slow it further. Aim for twenty-five to thirty grams of fiber a day with plenty of water alongside; fiber without the fluid can make things worse rather than better.",
       eat: [
         { idea: 'Bran cereal with sliced pear and cold milk', tags: ['vegetarian', 'nut-free', 'halal', 'kosher'] },
         { idea: 'A black bean and roasted sweet potato bowl with salsa', tags: ['vegetarian', 'vegan', 'dairy-free', 'nut-free', 'halal', 'kosher'] },
@@ -54,7 +54,7 @@ export const weeks21to28 = [
   {
     week: 22,
     baby: [
-      "Your baby's sense of touch is well developed now, and there is plenty within reach — the cord to grip, a face to stroke, a foot to catch hold of. A good share of the movement you feel is simply a hand exploring.",
+      "Your baby’s sense of touch is well developed now, and there is plenty within reach — the cord to grip, a face to stroke, a foot to catch hold of. A good share of the movement you feel is simply a hand exploring.",
       'The lips have grown more defined, and fine pale eyebrows and lashes have come in. The eyes are fully formed behind the closed lids, though the iris has not yet taken on the pigment that will set their color.',
       'Under the gums, buds for the permanent teeth are forming behind the baby teeth already in place. It is a full second set being stacked up years ahead of the day they will be needed.',
       'The pancreas keeps building the cells that will manage blood sugar after birth, and the liver is learning to process what comes its way. Organ by organ, the systems are shifting from being built to being tested.'
@@ -66,7 +66,7 @@ export const weeks21to28 = [
     ],
     nutrition: {
       focus: 'Colorful produce',
-      why: "Your baby's face is filling in its finest details this week, and the everyday vitamins behind that steady work — vitamin C, folate, potassium — travel best in colorful fruit and vegetables. Eating across the colors also puts vitamin C on the plate at mealtimes, which helps you take up more of the iron you eat.",
+      why: "Your baby’s face is filling in its finest details this week, and the everyday vitamins behind that steady work — vitamin C, folate, potassium — travel best in colorful fruit and vegetables. Eating across the colors also puts vitamin C on the plate at mealtimes, which helps you take up more of the iron you eat.",
       eat: [
         { idea: 'A slaw of red cabbage, carrot and apple with a lemon dressing', tags: ['vegetarian', 'vegan', 'dairy-free', 'nut-free', 'halal', 'kosher'] },
         { idea: 'Roasted red pepper and tomato soup with a grilled cheese', tags: ['vegetarian', 'nut-free', 'halal', 'kosher'] },
@@ -86,7 +86,7 @@ export const weeks21to28 = [
   {
     week: 23,
     baby: [
-      "Your baby's lungs are getting ready for air long before they will need it. Fine blood vessels are spreading through them this week, and the cells that make surfactant — the slippery coating that keeps the air sacs from sticking shut — are starting up.",
+      "Your baby’s lungs are getting ready for air long before they will need it. Fine blood vessels are spreading through them this week, and the cells that make surfactant — the slippery coating that keeps the air sacs from sticking shut — are starting up.",
       'The skin is still loose and wrinkled, because it is growing ahead of the fat that will fill it out. It looks reddish for now, colored by the web of new blood vessels sitting just underneath.',
       'Loud sounds are becoming familiar rather than startling — the vacuum, the dog, a door slamming shut. Some babies answer a sudden noise with a kick, and many go still and settle when a piece of music they have heard before comes back on.',
       'This is the start of a steep climb in growth. Over the next month your baby puts on weight faster than at any point so far, and you will feel the difference in how solid the movements become.'
@@ -98,7 +98,7 @@ export const weeks21to28 = [
     ],
     nutrition: {
       focus: 'Calcium and vitamin D',
-      why: "Your baby's skeleton is mineralizing quickly through this stretch and draws the calcium for it straight from you, so the daily 1,000 mg matters as much for your bones as for theirs. Vitamin D is what lets you absorb it — the target there is 600 IU a day, and many prenatal vitamins carry less calcium than people assume.",
+      why: "Your baby’s skeleton is mineralizing quickly through this stretch and draws the calcium for it straight from you, so the daily 1,000 mg matters as much for your bones as for theirs. Vitamin D is what lets you absorb it — the target there is 600 IU a day, and many prenatal vitamins carry less calcium than people assume.",
       eat: [
         { idea: 'Yogurt with honey and a spoonful of toasted oats', tags: ['vegetarian', 'nut-free', 'halal', 'kosher'] },
         { idea: 'Sardines mashed on hot buttered toast with lemon', tags: ['nut-free'] },
@@ -110,7 +110,7 @@ export const weeks21to28 = [
       safety: 'Keep caffeine to 200 mg a day or less — about one 12-oz coffee. Tea, chocolate, and soda count toward the total.'
     },
     todos: [
-      { id: 'w23-after-hours-number', label: "Save your provider's after-hours number in your phone, and learn the difference between practice tightenings and regular contractions." },
+      { id: 'w23-after-hours-number', label: "Save your provider’s after-hours number in your phone, and learn the difference between practice tightenings and regular contractions." },
       { id: 'w23-check-your-prenatal-label', label: 'Read the calcium and vitamin D lines on your prenatal label so you know what food still needs to cover.' }
     ]
   },
@@ -120,7 +120,7 @@ export const weeks21to28 = [
     baby: [
       'The week belongs to the lungs. They are branching into their final small passages, and the supply of surfactant — the slippery coating that keeps those passages from sticking shut — is steadily building.',
       'The inner ear has finished developing, which hands your baby a sense of which way is up. They can tell when they are upright, tipped sideways or turning over, and they will put it to use in the months of somersaults ahead.',
-      "The skin is losing its see-through look as it thickens, and hair has come in on the head with real color and texture. What shade it lands on is still anyone's guess — plenty of babies are born with hair that changes its mind in the first year.",
+      "The skin is losing its see-through look as it thickens, and hair has come in on the head with real color and texture. What shade it lands on is still anyone’s guess — plenty of babies are born with hair that changes its mind in the first year.",
       'Week 24 is a quiet marker in your care team’s notes — a point where, in the rare event a baby comes very early, a newborn team has a great deal to work with, and it gets better every week. Almost every pregnancy sails straight past it; it is a line on a chart, not something to sit with.'
     ],
     body: [
@@ -150,7 +150,7 @@ export const weeks21to28 = [
   {
     week: 25,
     baby: [
-      "Your baby is beginning to know your voice from all the others. Yours arrives twice over — through the air and up through your own body — and a lower voice like your partner's carries through the belly better than a high one, so both are worth using out loud.",
+      "Your baby is beginning to know your voice from all the others. Yours arrives twice over — through the air and up through your own body — and a lower voice like your partner’s carries through the belly better than a high one, so both are worth using out loud.",
       'The hands are finished work now. Fingernails are growing in, the swirls and loops of the fingerprints are set for life, and the grip is firm enough to hold onto the cord for a while at a time.',
       'The nostrils, plugged since early on, are opening up. Your baby practices breathing motions with amniotic fluid moving through the nose now, which builds the muscles that will manage the first real breath.',
       'Fat is filling in under the skin, so the wrinkled look is smoothing out and the color is turning from red toward pink. Your baby is starting to look less like a work in progress and more like a newborn.'
@@ -171,7 +171,7 @@ export const weeks21to28 = [
         { idea: 'Farro tossed with pasteurized feta, cucumber and mint', tags: ['vegetarian', 'nut-free', 'halal', 'kosher'] },
         { idea: 'Peanut butter and banana on seeded whole-grain bread', tags: ['vegetarian', 'vegan', 'dairy-free', 'halal', 'kosher'] }
       ],
-      safety: "There's no known safe amount of alcohol in pregnancy — mocktails, sparkling water, and juice spritzers are all fair game."
+      safety: "There’s no known safe amount of alcohol in pregnancy — mocktails, sparkling water, and juice spritzers are all fair game."
     },
     todos: [
       { id: 'w25-read-aloud', label: 'Read or sing something out loud tonight — your baby is learning the sound of you.' },
@@ -182,7 +182,7 @@ export const weeks21to28 = [
   {
     week: 26,
     baby: [
-      "Your baby's eyes have been sealed shut for months and are getting ready to open. The layers of the retina are settling into place, and the lids will part sometime in the next week or two.",
+      "Your baby’s eyes have been sealed shut for months and are getting ready to open. The layers of the retina are settling into place, and the lids will part sometime in the next week or two.",
       'Brain activity for hearing and sight now shows up in a measurable way. Your baby answers sound more reliably than before — a familiar voice, a burst of music, a sudden clatter — usually with a kick or a moment of complete stillness.',
       'Weight is going on faster than at any point so far, mostly as fat laid down under the skin. If you are carrying a boy, his testicles have begun their slow descent.',
       'The kicks have real force behind them now. Someone with a hand resting on your belly can feel them, and some evenings you can watch a foot travel across from the outside.'
@@ -214,7 +214,7 @@ export const weeks21to28 = [
   {
     week: 27,
     baby: [
-      "Your baby's eyes open this week. The lids have been fused since early on, and now they part, blink and close again, with lashes fully grown and pupils that tighten in a bright light.",
+      "Your baby’s eyes open this week. The lids have been fused since early on, and now they part, blink and close again, with lashes fully grown and pupils that tighten in a bright light.",
       'Sleeping and waking have organized into real cycles, including the flickering stage that goes with dreaming. Whatever a baby has to dream about in there, the brain is clearly rehearsing something.',
       'You may notice a run of small rhythmic taps that carries on for a few minutes and then stops. Those are hiccups, they show up often from here on, and they do not bother your baby in the least.',
       'The surface of the brain, smooth until recently, is folding into the grooves and ridges it will keep for life. That folding is how so much brain fits into so small a head, and it carries on hard through the months ahead.'
@@ -239,26 +239,26 @@ export const weeks21to28 = [
     },
     todos: [
       { id: 'w27-tdap', label: 'Ask about your Tdap shot — it is given between weeks twenty-seven and thirty-six and passes whooping cough protection to your baby.' },
-      { id: 'w27-learn-the-pattern', label: "Notice the hours your baby is usually busy — knowing their pattern makes next week's kick counts simple." }
+      { id: 'w27-learn-the-pattern', label: "Notice the hours your baby is usually busy — knowing their pattern makes next week’s kick counts simple." }
     ]
   },
 
   {
     week: 28,
     baby: [
-      "Welcome to the third trimester. Your baby's brain is in the middle of its biggest growth spurt, adding tissue and folds at a pace it holds all the way to birth.",
+      "Welcome to the third trimester. Your baby’s brain is in the middle of its biggest growth spurt, adding tissue and folds at a pace it holds all the way to birth.",
       'The eyes open and close on a rhythm of their own now, and they can pick out a bright light held against your belly. Some babies turn toward it, and some turn firmly away.',
       'Fat is rounding out the arms, legs and cheeks, so your baby holds their own warmth better than before. The lungs have come far enough that, with help, they could manage air.',
-      "Movements have settled into a pattern you can recognize — busy stretches and quiet ones, usually on a schedule of your baby's own choosing. That personal pattern is the thing worth knowing from here on."
+      "Movements have settled into a pattern you can recognize — busy stretches and quiet ones, usually on a schedule of your baby’s own choosing. That personal pattern is the thing worth knowing from here on."
     ],
     body: [
       'The third trimester starts here, and so do more frequent visits — usually every two weeks until around week thirty-six, then weekly after that. Expect a blood count at this visit, and if your blood type is Rh-negative, an injection called RhoGAM that protects this pregnancy and the ones that might follow.',
       'This is the week to start counting kicks. Pick a time your baby is usually active, settle on your left side, and count until you reach ten movements — most days that takes well under an hour. If you count fewer than ten movements in two hours, or the pattern shifts clearly from what you know, call your provider; they would far rather hear from you.',
-      "Fatigue often circles back around now, along with breathlessness and a stomach with less room than it would like. You may also see a few drops of thick yellowish fluid from your breasts — that is colostrum, your baby's first food, turning up early to practice."
+      "Fatigue often circles back around now, along with breathlessness and a stomach with less room than it would like. You may also see a few drops of thick yellowish fluid from your breasts — that is colostrum, your baby’s first food, turning up early to practice."
     ],
     nutrition: {
       focus: 'DHA for the brain sprint',
-      why: "Your baby's brain is adding tissue faster now than it will at any other time, and the membranes of all those new cells are built largely out of DHA, which they draw from you and bank for later. Two or three servings a week of oily fish — salmon, sardines, herring, trout — covers the daily 200 to 300 mg; leaner picks like cod, tilapia and shrimp are lovely low-mercury protein but carry far less DHA. Algae oil does the same job for anyone who would rather skip fish altogether.",
+      why: "Your baby’s brain is adding tissue faster now than it will at any other time, and the membranes of all those new cells are built largely out of DHA, which they draw from you and bank for later. Two or three servings a week of oily fish — salmon, sardines, herring, trout — covers the daily 200 to 300 mg; leaner picks like cod, tilapia and shrimp are lovely low-mercury protein but carry far less DHA. Algae oil does the same job for anyone who would rather skip fish altogether.",
       eat: [
         { idea: 'Salmon fishcakes with peas and mashed potato', tags: ['dairy-free', 'nut-free'] },
         { idea: 'Sardine and tomato pasta with parsley', tags: ['dairy-free', 'nut-free'] },

@@ -19,18 +19,18 @@ export const weeks04to12 = [
   {
     week: 4,
     baby: [
-      "This is the week the tiny ball of cells that will become your baby settles into the lining of your uterus. It's called implantation, and it's the reason a home test can finally show two lines — the new embryo starts making a hormone that the test picks up.",
+      "This is the week the tiny ball of cells that will become your baby settles into the lining of your uterus. It’s called implantation, and it’s the reason a home test can finally show two lines — the new embryo starts making a hormone that the test picks up.",
       'Your baby is now an embryo built from three thin layers, and each layer has its own job. One becomes the brain, spine, nerves and skin; the middle one becomes the heart, bones and muscles; the innermost becomes the lungs, gut and bladder. Everything that follows grows out of these three.',
       'Two support systems are going up alongside your baby: the amniotic sac that will cushion them, and the first cells of the placenta, which will handle food and oxygen for the months ahead. None of this is visible from the outside, and all of it is some of the busiest work of the whole pregnancy.'
     ],
     body: [
-      "You may have just seen a positive test, or you may still be waiting on a late period. Plenty of women feel nothing at all this week, and plenty feel a lot — tender breasts, a heavy kind of tired that naps don't fix, or mild cramping that feels like your period is on its way.",
+      "You may have just seen a positive test, or you may still be waiting on a late period. Plenty of women feel nothing at all this week, and plenty feel a lot — tender breasts, a heavy kind of tired that naps don’t fix, or mild cramping that feels like your period is on its way.",
       'A little spotting around now is common as the embryo settles in. If bleeding gets heavier than spotting or comes with pain, call your provider — that call is exactly what they are there for.',
-      "It's normal for the news to feel unreal, and for excitement and nerves to show up in the same hour. You don't have to feel any particular way about it yet."
+      "It’s normal for the news to feel unreal, and for excitement and nerves to show up in the same hour. You don’t have to feel any particular way about it yet."
     ],
     nutrition: {
       focus: 'Folate',
-      why: "Your baby's neural tube — the very beginning of the brain and spinal cord — starts forming in the next couple of weeks, and folate is the nutrient that helps it close cleanly. The daily goal is 600 mcg DFE, and a prenatal vitamin does most of that lifting for you.",
+      why: "Your baby’s neural tube — the very beginning of the brain and spinal cord — starts forming in the next couple of weeks, and folate is the nutrient that helps it close cleanly. The daily goal is 600 mcg DFE, and a prenatal vitamin does most of that lifting for you.",
       eat: [
         { idea: 'Lentil soup with a squeeze of lemon and a slice of buttered toast', tags: ['vegetarian', 'nut-free', 'halal', 'kosher'] },
         { idea: 'Spinach and white bean salad with olive oil and lemon', tags: ['vegetarian', 'vegan', 'dairy-free', 'nut-free', 'halal', 'kosher'] },
@@ -39,20 +39,20 @@ export const weeks04to12 = [
         { idea: 'A smoothie with pasteurized orange juice, frozen mango and a handful of baby spinach', tags: ['vegetarian', 'vegan', 'dairy-free', 'nut-free', 'halal', 'kosher'] },
         { idea: 'Roasted asparagus alongside rice and black beans', tags: ['vegetarian', 'vegan', 'dairy-free', 'nut-free', 'halal', 'kosher'] }
       ],
-      safety: "There's no known safe amount of alcohol in pregnancy — mocktails, sparkling water, and juice spritzers are all fair game."
+      safety: "There’s no known safe amount of alcohol in pregnancy — mocktails, sparkling water, and juice spritzers are all fair game."
     },
     todos: [
       { id: 'w4-prenatal-vitamin', label: 'Start a daily prenatal vitamin with folate — pick a time of day you will actually remember.' },
-      { id: 'w4-choose-a-provider', label: "Start thinking about who you'd like caring for you: an OB, a midwife, or the practice a friend loves." }
+      { id: 'w4-choose-a-provider', label: "Start thinking about who you’d like caring for you: an OB, a midwife, or the practice a friend loves." }
     ]
   },
 
   {
     week: 5,
     baby: [
-      "The neural tube is forming this week. It begins as a flat groove running down your baby's back, and over a few days the edges fold up and zip together into the tube that becomes the brain and spinal cord.",
+      "The neural tube is forming this week. It begins as a flat groove running down your baby’s back, and over a few days the edges fold up and zip together into the tube that becomes the brain and spinal cord.",
       'The heart starts out as a simple tube as well. Around now it begins to pulse — not a four-chambered heartbeat yet, just the first steady flicker of muscle deciding to move.',
-      "Along either side of the neural tube, small blocks of tissue are stacking up like beads on a string. They'll become your baby's vertebrae, ribs, and the muscles of the back."
+      "Along either side of the neural tube, small blocks of tissue are stacking up like beads on a string. They’ll become your baby’s vertebrae, ribs, and the muscles of the back."
     ],
     body: [
       'The hormone that made your test positive is climbing fast right now, and it takes a lot of energy with it. A bone-deep tiredness in the late afternoon is one of the most common early signs there is.',
@@ -73,7 +73,7 @@ export const weeks04to12 = [
     },
     todos: [
       { id: 'w5-book-first-visit', label: 'Call and get on the schedule — most practices see you for the first prenatal visit between weeks eight and ten.' },
-      { id: 'w5-questions-note', label: "Start a running note on your phone for questions as they occur to you; they vanish the moment you're in the room." }
+      { id: 'w5-questions-note', label: "Start a running note on your phone for questions as they occur to you; they vanish the moment you’re in the room." }
     ]
   },
 
@@ -90,7 +90,7 @@ export const weeks04to12 = [
     ],
     nutrition: {
       focus: 'Choline',
-      why: "The neural tube seals this week, and choline works right alongside folate in building your baby's brain and spinal cord. The daily target is 450 mg, and eggs are the easiest route there — a couple of eggs gets you a good way along.",
+      why: "The neural tube seals this week, and choline works right alongside folate in building your baby’s brain and spinal cord. The daily target is 450 mg, and eggs are the easiest route there — a couple of eggs gets you a good way along.",
       eat: [
         { idea: 'Two scrambled eggs with melted cheese on toast', tags: ['vegetarian', 'nut-free', 'halal', 'kosher'] },
         { idea: 'Egg salad on crackers, made with fully cooked eggs', tags: ['vegetarian', 'dairy-free', 'nut-free', 'halal', 'kosher'] },
@@ -110,7 +110,7 @@ export const weeks04to12 = [
   {
     week: 7,
     baby: [
-      "Your baby's brain is growing faster than any other part right now, dividing into the regions that will handle movement, the senses and thinking. The head is large compared with the rest of the body, and will stay that way for a while yet.",
+      "Your baby’s brain is growing faster than any other part right now, dividing into the regions that will handle movement, the senses and thinking. The head is large compared with the rest of the body, and will stay that way for a while yet.",
       'The arm buds have stretched into little paddles with the beginnings of hands at the ends. Kidneys are forming, the liver has started making blood cells, and the umbilical cord is now a working line between your baby and the growing placenta.',
       'The face is beginning to look like a face: nostrils appear, the lenses of the eyes take shape, and the jaw forms underneath. Cardiac activity is usually visible on ultrasound by around this week.'
     ],
@@ -182,7 +182,7 @@ export const weeks04to12 = [
     ],
     nutrition: {
       focus: 'Vitamin D',
-      why: "Bone is starting to harden inside your baby's cartilage skeleton this week, and vitamin D is what lets your body actually use calcium to do it. The daily target is 600 IU, and most prenatal vitamins include a share of it.",
+      why: "Bone is starting to harden inside your baby’s cartilage skeleton this week, and vitamin D is what lets your body actually use calcium to do it. The daily target is 600 IU, and most prenatal vitamins include a share of it.",
       eat: [
         { idea: 'Canned salmon mashed onto crackers with lemon', tags: ['dairy-free', 'nut-free'] },
         { idea: 'A glass of fortified milk, dairy or soy', tags: ['vegetarian', 'nut-free', 'halal', 'kosher'] },
@@ -207,12 +207,12 @@ export const weeks04to12 = [
       'The joints all work now. Knees and ankles bend, wrists flex, and your baby somersaults and kicks around with plenty of room to spare.'
     ],
     body: [
-      "You may hear your baby's heartbeat for the first time around now, through a handheld doppler at a prenatal visit. It is quick — much quicker than yours — and it tends to be a sound people remember for a long time.",
+      "You may hear your baby’s heartbeat for the first time around now, through a handheld doppler at a prenatal visit. It is quick — much quicker than yours — and it tends to be a sound people remember for a long time.",
       'You might feel occasional pulls low on one side or the other as the ligaments holding your uterus begin to stretch. Nausea starts easing this week for some women, while for others it takes a few weeks more, and both are ordinary.'
     ],
     nutrition: {
       focus: 'Easy-does-it foods',
-      why: "Your baby's organs are all in place now and mainly growing, so this is not the week to force a perfectly balanced plate — steady calories in, in whatever form they will stay down, is the win. Cold, dry and bland foods tend to be gentlest when smells are the trigger.",
+      why: "Your baby’s organs are all in place now and mainly growing, so this is not the week to force a perfectly balanced plate — steady calories in, in whatever form they will stay down, is the win. Cold, dry and bland foods tend to be gentlest when smells are the trigger.",
       eat: [
         { idea: 'Cold pasta salad with peas and olive oil', tags: ['vegetarian', 'vegan', 'dairy-free', 'nut-free', 'halal', 'kosher'] },
         { idea: 'A slow-sipped smoothie of banana, yogurt and ice', tags: ['vegetarian', 'nut-free', 'halal', 'kosher'] },
@@ -253,7 +253,7 @@ export const weeks04to12 = [
         { idea: 'Grilled cheese with a bowl of tomato soup', tags: ['vegetarian', 'nut-free', 'halal', 'kosher'] },
         { idea: 'Steamed kale with sesame seeds over rice', tags: ['vegetarian', 'vegan', 'dairy-free', 'nut-free', 'halal', 'kosher'] }
       ],
-      safety: "There's no known safe amount of alcohol in pregnancy — mocktails, sparkling water, and juice spritzers are all fair game."
+      safety: "There’s no known safe amount of alcohol in pregnancy — mocktails, sparkling water, and juice spritzers are all fair game."
     },
     todos: [
       { id: 'w11-nt-scan', label: 'Schedule the nuchal translucency scan — the window for it runs from week eleven to week thirteen.' },
@@ -288,7 +288,7 @@ export const weeks04to12 = [
       safety: 'Skip high-mercury fish: shark, swordfish, king mackerel, tilefish, bigeye tuna, marlin, and orange roughy. Salmon, sardines, shrimp, cod, and canned light tuna are great picks.'
     },
     todos: [
-      { id: 'w12-plan-your-news', label: "Decide who you'd like to tell, and how — there is no deadline on this one." },
+      { id: 'w12-plan-your-news', label: "Decide who you’d like to tell, and how — there is no deadline on this one." },
       { id: 'w12-book-next-visit', label: 'Book your next prenatal visit; monthly check-ins are the usual rhythm until about week twenty-eight.' }
     ]
   }

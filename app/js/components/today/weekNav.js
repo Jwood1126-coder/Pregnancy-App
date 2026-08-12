@@ -13,6 +13,9 @@ import { chevron } from './icons.js';
  * @property {boolean} browsing True when the view has left the current week.
  * @property {boolean} canPrev Enable the back chevron.
  * @property {boolean} canNext Enable the forward chevron.
+ * @property {number} [progress] How far along the pregnancy is, 0–1. Drawn as
+ *   a quiet track in the row's spare width when not browsing.
+ * @property {string} [progressLabel] What the track says to a screen reader.
  * @property {string} [prevLabel] Accessible label for the back chevron.
  * @property {string} [nextLabel] Accessible label for the forward chevron.
  * @property {() => void} onPrev
@@ -64,12 +67,33 @@ export function weekNav(options) {
       )
     );
 
+  /* The spare width earns its keep: a silent sage track showing how far along
+     the pregnancy is — the one thing a parent wants at a glance, and the one
+     thing the app never drew. */
+  const pct = Math.max(0, Math.min(1, options.progress ?? 0)) * 100;
+  const track = el(
+    'span',
+    {
+      class: 'today-nav__spacer',
+      role: options.progressLabel ? 'img' : null,
+      'aria-label': options.progressLabel ?? null,
+      'aria-hidden': options.progressLabel ? null : 'true'
+    },
+    el('span', {
+      class: 'today-nav__progress',
+      style: `width: ${pct.toFixed(1)}%`
+    })
+  );
+
   return /** @type {HTMLElement} */ (
     el(
       'nav',
       { class: 'today-nav', 'aria-label': 'Browse weeks' },
       backPill,
-      el('span', { class: 'today-nav__spacer' }),
+      /* The journey means nothing while you are looking at week 23 instead of
+         week 17, and squeezed between the pill and the chevrons it read as a
+         broken bar rather than as a measure. The pill takes the room. */
+      options.browsing ? null : track,
       arrow('left', options.prevLabel ?? 'Previous week', options.canPrev, options.onPrev),
       arrow('right', options.nextLabel ?? 'Next week', options.canNext, options.onNext)
     )

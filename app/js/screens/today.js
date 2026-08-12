@@ -21,7 +21,8 @@ import {
   trimesterOf,
   contentWeekFor,
   MIN_CONTENT_WEEK,
-  MAX_CONTENT_WEEK
+  MAX_CONTENT_WEEK,
+  PREGNANCY_DAYS
 } from '../lib/weekMath.js';
 import { trimesterLabel, formatDaysToGo } from '../lib/units.js';
 import { getWeek } from '../data/weeks/index.js';
@@ -167,6 +168,11 @@ export function render(ctx) {
     root.replaceChild(nextNav, navEl);
     navEl = nextNav;
 
+    /* A new week is a new page, and iOS always presents one from its top.
+       Instant, not smooth: the 200 ms slide is the transition, and a competing
+       scroll animation under it reads as jank. */
+    if (window.scrollY > 0) window.scrollTo({ top: 0, behavior: 'auto' });
+
     paintWeek(direction);
   }
 
@@ -206,9 +212,15 @@ export function render(ctx) {
   function buildHeader() {
     const nickname = ctx.settings.nickname.trim();
     const onSettings = () => ctx.showSettings();
+    /* Past the due date the trimester is noise — nobody at 41 weeks needs to
+       be told which one they are in — and dropping it keeps the most tender
+       week in the app on one line instead of orphaning two words under the
+       biggest numeral on the screen. */
     const todayMeta =
-      `${formatGA(status.ga)} · ${trimesterLabel(status.trimester)} · ` +
-      `${formatDaysToGo(status.daysToGo)}`;
+      status.daysToGo < 0
+        ? `${formatGA(status.ga)} · ${formatDaysToGo(status.daysToGo)}`
+        : `${formatGA(status.ga)} · ${trimesterLabel(status.trimester)} · ` +
+          `${formatDaysToGo(status.daysToGo)}`;
 
     if (isEarlyView()) {
       return todayHeader({
@@ -225,13 +237,16 @@ export function render(ctx) {
     const delta = week - referenceWeek;
 
     return todayHeader({
+      /* "This week" above "Week 17" above "17w + 3d …" is the same fact three
+         times, so the eyebrow only appears when it adds something: the baby's
+         name, or which direction you are browsing. */
       eyebrow: browsing
         ? delta > 0
           ? 'Looking ahead'
           : 'Looking back'
         : nickname
           ? `${nickname}’s week`
-          : 'This week',
+          : undefined,
       title: `Week ${week}`,
       meta: browsing
         ? `${trimesterLabel(trimesterOf(week))} · ${relativeWeekLabel(delta)}`
@@ -246,7 +261,10 @@ export function render(ctx) {
    */
   function buildNav() {
     const week = viewWeek();
+    const done = Math.max(0, Math.min(1, status.days / PREGNANCY_DAYS));
     return weekNav({
+      progress: done,
+      progressLabel: `${Math.round(done * 100)}% of the way there`,
       browsing: browseWeek !== null,
       canPrev: !isEarlyView() && (week > MIN_CONTENT_WEEK || early),
       canNext: isEarlyView() || week < MAX_CONTENT_WEEK,

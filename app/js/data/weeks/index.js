@@ -20,11 +20,11 @@ import { weeks36to42 } from './weeks36to42.js';
 
 /**
  * The rotating food-safety reminders, verbatim from docs/PLAN.md.
- * A week's `nutrition.safety` must be exactly `SAFETY[(week - 4) % 7]`.
+ * A week’s `nutrition.safety` must be exactly `SAFETY[(week - 4) % 7]`.
  * @type {string[]}
  */
 export const SAFETY = [
-  "There's no known safe amount of alcohol in pregnancy — mocktails, sparkling water, and juice spritzers are all fair game.",
+  "There’s no known safe amount of alcohol in pregnancy — mocktails, sparkling water, and juice spritzers are all fair game.",
   'Skip high-mercury fish: shark, swordfish, king mackerel, tilefish, bigeye tuna, marlin, and orange roughy. Salmon, sardines, shrimp, cod, and canned light tuna are great picks.',
   'Pass on raw or undercooked meat, poultry, eggs, and sprouts — and sneak-tasting raw cookie dough counts too.',
   'Choose pasteurized dairy and juice. Soft cheeses like brie, feta, and queso fresco are fine only if the label says pasteurized.',

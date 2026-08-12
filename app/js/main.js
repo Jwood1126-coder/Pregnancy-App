@@ -7,6 +7,7 @@
  */
 
 import { el, mount } from './lib/dom.js';
+import { attachSheetDrag } from './lib/sheetDrag.js';
 import {
   loadSettings,
   updateSettings,
@@ -46,6 +47,19 @@ let navEl = null;
 
 /** @type {HTMLElement|null} */
 let sheetEl = null;
+
+/** @type {HTMLElement|null} The dimmed page behind an open sheet. */
+let backdropEl = null;
+
+/** @type {(() => void)|null} Detach the settings sheet's drag gesture. */
+let detachSheetDrag = null;
+
+/**
+ * Where each tab was left, so coming back returns you to your place instead of
+ * to the top of an article you were half way through.
+ * @type {Object<string, number>}
+ */
+const tabScroll = { today: 0, size: 0 };
 
 /** True while the welcome screen is showing (no tab bar). */
 let inWelcome = false;
@@ -96,10 +110,23 @@ function update(patch) {
  */
 function go(tab) {
   if (!SCREENS[tab]) return;
+  if (inWelcome) {
+    currentTab = tab;
+    return;
+  }
+  /* Tapping the tab you are already on scrolls it to the top — the behaviour
+     every iOS tab bar has, and the one users reach for without thinking. */
+  if (tab === currentTab) {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    tabScroll[tab] = 0;
+    return;
+  }
+  tabScroll[currentTab] = window.scrollY;
   currentTab = tab;
-  if (inWelcome) return;
   renderScreen();
-  window.scrollTo(0, 0);
+  /* After layout, or the offset we are restoring is not reachable yet. */
+  const top = tabScroll[tab] ?? 0;
+  requestAnimationFrame(() => window.scrollTo(0, top));
 }
 
 /* -------------------------------------------------------------------------
@@ -120,10 +147,22 @@ function showSettings() {
       safely(() => settingsScreen.render(sheetCtx), 'Settings')
     )
   );
+  /* The dimmed page behind is what makes this read as a sheet laid over Today
+     rather than as a screen that replaced it. */
+  backdropEl = /** @type {HTMLElement} */ (
+    el('div', { class: 'sheet__backdrop', onClick: hideSettings })
+  );
+  document.body.appendChild(backdropEl);
   document.body.appendChild(sheet);
   sheetEl = sheet;
+  detachSheetDrag = attachSheetDrag(sheet, backdropEl, hideSettings);
   document.body.style.overflow = 'hidden';
-  requestAnimationFrame(() => sheet.classList.add('sheet--open'));
+  requestAnimationFrame(() => {
+    if (backdropEl) backdropEl.classList.add('sheet__backdrop--open');
+    sheet.classList.add('sheet--open');
+    const heading = /** @type {HTMLElement|null} */ (sheet.querySelector('h1'));
+    if (heading) heading.focus({ preventScroll: true });
+  });
 }
 
 /**
@@ -134,7 +173,17 @@ function hideSettings() {
   const sheet = sheetEl;
   if (!sheet) return;
   sheetEl = null;
+  if (detachSheetDrag) {
+    detachSheetDrag();
+    detachSheetDrag = null;
+  }
   document.body.style.overflow = '';
+  if (backdropEl) {
+    const dim = backdropEl;
+    backdropEl = null;
+    dim.classList.remove('sheet__backdrop--open');
+    setTimeout(() => dim.remove(), 300);
+  }
   sheet.classList.remove('sheet--open');
   let removed = false;
   const remove = () => {

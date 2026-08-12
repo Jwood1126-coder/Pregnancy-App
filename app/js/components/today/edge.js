@@ -18,9 +18,16 @@ import { card } from '../card.js';
 export function earlyDaysCard(options = {}) {
   const nickname = (options.nickname ?? '').trim();
 
+  /* The mark rides with the card's own label instead of taking a line of its
+     own, where it read as a stray glyph. */
   return card(
-    { title: 'First things first' },
-    el('p', { class: 'today-mark', 'aria-hidden': 'true' }, '🌱'),
+    {},
+    el(
+      'div',
+      { class: 'today-edge__head' },
+      el('span', { class: 'today-mark', 'aria-hidden': 'true' }, '🌱'),
+      el('h2', { class: 'section-title' }, 'First things first')
+    ),
     el(
       'div',
       { class: 'prose' },

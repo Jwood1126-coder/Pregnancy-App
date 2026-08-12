@@ -16,6 +16,7 @@
  */
 
 import { el } from '../../lib/dom.js';
+import { attachSheetDrag } from '../../lib/sheetDrag.js';
 import { updateSettings } from '../../lib/storage.js';
 import {
   CREDIT_CARD_MM,
@@ -50,15 +51,27 @@ const CSS = `
   width: 100%;
   max-width: 560px;
   margin: 0 auto;
-  padding: calc(var(--safe-top) + 10px) var(--gutter) 0;
+  padding: 10px var(--gutter) 0;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
+}
+
+/* The card outline is taller than the phone, so the sheet scrolls — and the
+   title has to stay put while it does, or it looks overrun. */
+.size-cal__inner > .sheet__head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: color-mix(in srgb, var(--bg) 94%, transparent);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid transparent;
 }
 
 .size-cal__copy {
-  font-size: 15px;
-  line-height: 1.5;
+  font-size: 14px;
+  line-height: 1.45;
   color: var(--ink-soft);
   text-wrap: pretty;
 }
@@ -68,7 +81,7 @@ const CSS = `
   align-items: flex-start;
   justify-content: center;
   overflow-x: auto;
-  padding: 2px 0;
+  padding: 2px 0 14px;
   min-height: 180px;
 }
 
@@ -80,14 +93,13 @@ const CSS = `
   justify-content: center;
   border: 2px dashed color-mix(in srgb, var(--accent) 60%, transparent);
   background: color-mix(in srgb, var(--accent-soft) 55%, transparent);
-  box-shadow: var(--shadow);
 }
 
 .size-cal__cardLabel {
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.02em;
-  color: var(--accent);
+  color: var(--accent-ink);
   text-align: center;
   padding: 0 10px;
   text-wrap: balance;
@@ -99,12 +111,25 @@ const CSS = `
   gap: 12px;
 }
 
+/* Real buttons, not inert glyphs that look like buttons: a 44 pt nudge at each
+   end makes a millimetre-perfect match possible without a perfect drag. */
 .size-cal__end {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--ink-soft);
   flex: none;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--ink-soft);
+  font-family: inherit;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
 }
+
+.size-cal__end:active { background: var(--press); }
 
 .size-cal__input {
   -webkit-appearance: none;
@@ -152,14 +177,6 @@ const CSS = `
   background: var(--card);
 }
 
-.size-cal__readout {
-  font-size: 12.5px;
-  color: var(--ink-soft);
-  text-align: center;
-  font-variant-numeric: tabular-nums;
-  margin-top: -4px;
-}
-
 /* A full-size card outline is taller than most phones once the copy above it
    is counted, so the sheet scrolls — and the one button that matters rides
    along at the bottom instead of hiding under the fold. */
@@ -170,10 +187,11 @@ const CSS = `
   flex-direction: column;
   gap: 6px;
   padding: 8px 0 calc(var(--safe-bottom) + 6px);
-  /* Translucent, so a tall outline still reads through the bar. */
-  background: color-mix(in srgb, var(--bg) 86%, transparent);
-  backdrop-filter: saturate(160%) blur(14px);
-  -webkit-backdrop-filter: saturate(160%) blur(14px);
+  /* A measuring tool needs a rail, not a smear: judging a real card edge
+     against a blurred translucent band is the wrong material, and the outline
+     must clear this bar entirely rather than fade out behind it. */
+  background: var(--bg);
+  border-top: 1px solid var(--hairline);
 }
 `;
 
@@ -230,7 +248,11 @@ export function render(ctx) {
 
   const stage = el('div', { class: 'size-cal__stage' }, cardOutline);
 
-  const readout = el('p', { class: 'size-cal__readout', 'aria-live': 'polite' }, '');
+  /* The line said, in different words, exactly what the copy above the outline
+     already says — and it cost the outline's bottom edge, which is the one edge
+     this whole screen exists to align. It stays for screen readers, where the
+     running commentary is genuinely useful, and leaves the glass. */
+  const readout = el('p', { class: 'visually-hidden', 'aria-live': 'polite' }, '');
 
   const input = /** @type {HTMLInputElement} */ (
     el('input', {
@@ -271,9 +293,45 @@ export function render(ctx) {
        and print the density to the precision the slider actually has. */
     input.setAttribute(
       'aria-valuetext',
-      `Card outline ${Math.round(longSide)} pixels tall, ${value.toFixed(2)} pixels per millimetre`
+      `Card outline ${Math.round(longSide)} pixels tall, ${value.toFixed(2)} pixels per millimeter`
     );
-    readout.textContent = `About ${value.toFixed(2)} pixels per millimetre`;
+    /* The visible line describes the thing being matched. A two-decimal pixel
+       density is an engineering value the reader cannot verify and should
+       never have to think about; it stays in the aria-valuetext, where it is
+       genuinely useful, and out of the most tender screen in the app. */
+    readout.textContent =
+      value === startValue
+        ? 'Slide until the outline matches your card exactly.'
+        : 'Looks close — trust your eye.';
+  }
+
+  /**
+   * One end-of-slider nudge button: five steps of the slider, which is about
+   * the smallest change the eye can judge against a real card edge.
+   * @param {1|-1} direction
+   * @returns {HTMLElement}
+   */
+  function nudge(direction) {
+    return /** @type {HTMLElement} */ (
+      el(
+        'button',
+        {
+          class: 'size-cal__end',
+          type: 'button',
+          'aria-label': direction > 0 ? 'Slightly bigger' : 'Slightly smaller',
+          onClick: () => {
+            const next = Math.min(
+              CAL_MAX_PX_PER_MM,
+              Math.max(CAL_MIN_PX_PER_MM, value + direction * CAL_STEP * 5)
+            );
+            value = next;
+            input.value = String(next);
+            paint();
+          }
+        },
+        direction > 0 ? '+' : '−'
+      )
+    );
   }
 
   const save = el(
@@ -298,10 +356,13 @@ export function render(ctx) {
     el(
       'div',
       { class: 'size-cal__inner' },
+      /* The grabber is the platform's own "this is a sheet, it can go away"
+         sign — the style existed and was never rendered. */
+      el('div', { class: 'sheet__grabber' }),
       el(
         'header',
         { class: 'sheet__head' },
-        el('h1', { class: 'title' }, 'Actual size'),
+        el('h1', { class: 'title', tabindex: '-1' }, 'Actual size'),
         el(
           'button',
           { class: 'btn btn--quiet', type: 'button', onClick: () => close() },
@@ -311,8 +372,8 @@ export function render(ctx) {
       el(
         'p',
         { class: 'size-cal__copy' },
-        'Hold any bank or library card upright against the screen and slide until ' +
-          'the outline matches it. Every card is the same size, so any one will do.'
+        'Hold any bank or library card upright against the screen and slide ' +
+          'until the outline matches it.'
       ),
       stage,
       /* The outline can be taller than the phone, so the sheet scrolls — but
@@ -323,17 +384,12 @@ export function render(ctx) {
         el(
           'div',
           { class: 'size-cal__sliderRow' },
-          el('span', { class: 'size-cal__end' }, '−'),
+          nudge(-1),
           input,
-          el('span', { class: 'size-cal__end' }, '+')
+          nudge(1)
         ),
         readout,
-        save,
-        el(
-          'p',
-          { class: 'field__hint center' },
-          'Stored on this phone only — change it any time in Settings.'
-        )
+        save
       )
     )
   );
@@ -350,6 +406,10 @@ export function open(ctx) {
 
   /** @type {HTMLElement|null} */
   let sheet = null;
+  /** @type {HTMLElement|null} */
+  let backdrop = null;
+  /** @type {(() => void)|null} */
+  let detachDrag = null;
   let closed = false;
 
   const previousOverflow = document.body.style.overflow;
@@ -361,8 +421,18 @@ export function open(ctx) {
   function close() {
     if (closed) return;
     closed = true;
+    if (detachDrag) {
+      detachDrag();
+      detachDrag = null;
+    }
     document.removeEventListener('keydown', onKeyDown, true);
     document.body.style.overflow = previousOverflow;
+    if (backdrop) {
+      const dim = backdrop;
+      backdrop = null;
+      dim.classList.remove('sheet__backdrop--open');
+      setTimeout(() => dim.remove(), 300);
+    }
     const node = sheet;
     if (!node) return;
     node.classList.remove('sheet--open');
@@ -405,11 +475,24 @@ export function open(ctx) {
     )
   );
 
+  /* A dimmed page behind the sheet: without it a full-screen panel reads as a
+     navigation, not as something laid over what you were doing. Tapping it
+     dismisses, the way every iOS sheet does. */
+  backdrop = /** @type {HTMLElement} */ (
+    el('div', { class: 'sheet__backdrop', onClick: () => close() })
+  );
+  document.body.appendChild(backdrop);
   document.body.appendChild(sheet);
+  detachDrag = attachSheetDrag(sheet, backdrop, close);
   document.body.style.overflow = 'hidden';
   document.addEventListener('keydown', onKeyDown, true);
   requestAnimationFrame(() => {
+    if (backdrop) backdrop.classList.add('sheet__backdrop--open');
     if (sheet) sheet.classList.add('sheet--open');
+    /* Move the reader into the dialog, or VoiceOver and the keyboard are still
+       standing on the page behind it. */
+    const heading = /** @type {HTMLElement|null} */ (sheet && sheet.querySelector('h1'));
+    if (heading) heading.focus({ preventScroll: true });
   });
 
   return close;

@@ -31,19 +31,51 @@ const AFTER = ' — you deserve support, right now.';
  */
 export const RED_FLAGS_TEXT = `${BEFORE}${NUMBER}${AFTER}`;
 
+/** The lead-in, and then one symptom per line. */
+const [LEAD, SYMPTOMS] = (() => {
+  const at = BEFORE.indexOf(': ');
+  const items = BEFORE.slice(at + 2).split(' · ');
+  /* The last symptom carries the sentence that runs into the 988 line. */
+  return [BEFORE.slice(0, at + 1), items];
+})();
+
 /**
  * Build the collapsed red-flags card.
+ *
+ * The words are Appendix A's, untouched — `RED_FLAGS_TEXT` still reassembles
+ * to the verbatim string. Only the setting changes: the one card that has to
+ * be scannable under stress was a ten-line paragraph of middot-separated
+ * symptoms, so the middots become line breaks.
  * @returns {HTMLElement}
  */
 export function redFlagsCard() {
+  const last = SYMPTOMS.length - 1;
+  /* The final entry ends the sentence and runs into the crisis line, which
+     belongs below the list rather than inside it. */
+  const tail = SYMPTOMS[last];
+  const split = tail.indexOf('. ');
+  const lastItem = split < 0 ? tail : tail.slice(0, split + 1);
+  const closing = split < 0 ? '' : tail.slice(split + 2);
+
   return collapsibleCard(
     { title: 'When to call your provider', open: false, class: 'today-card--flags' },
     el(
       'blockquote',
       { class: 'today-flags' },
-      BEFORE,
-      el('a', { href: 'tel:988' }, el('strong', {}, NUMBER)),
-      AFTER
+      el('p', {}, LEAD),
+      el(
+        'ul',
+        {},
+        SYMPTOMS.slice(0, last).map((item) => el('li', {}, item)),
+        el('li', {}, lastItem)
+      ),
+      el(
+        'p',
+        {},
+        closing,
+        el('a', { href: 'tel:988' }, el('strong', {}, NUMBER)),
+        AFTER
+      )
     )
   );
 }

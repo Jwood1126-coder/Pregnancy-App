@@ -61,24 +61,36 @@ export const SIZE_STYLE_ID = 'size-styles';
 export const SIZE_AVERAGES_NOTE =
   'Lengths and weights are averages — every baby grows at their own pace.';
 
-/** Invitation shown until the user has calibrated their screen. */
-export const CALIBRATE_PROMPT = 'Approximate size — take 30 seconds to calibrate';
-
 /**
- * Invitation shown when a calibration exists but sits on a slider endpoint —
- * the user may have run out of slider before the outline matched their card,
- * so the badge stays honest and the door stays open.
+ * Invitation shown until the user has calibrated their screen — it lives on
+ * the honesty badge itself, so the promise is offered where the claim is made.
+ * The word after the separator is the tappable half and carries the accent;
+ * `"Try again"` replaces it when a calibration exists but rests on a slider
+ * endpoint, which means the outline may never have matched the user's card.
  */
-export const RECALIBRATE_PROMPT = 'Approximate size — try the calibration again';
+export const CALIBRATE_LEAD = 'Approximate size · ';
 
-/** Quiet confirmation shown once they have. */
-export const CALIBRATED_BADGE = 'Actual size, calibrated';
+/** The tappable verb on that badge. */
+export const CALIBRATE_ACTION = 'Calibrate';
+
+/** …and when a calibration exists but rested on a slider endpoint. */
+export const RECALIBRATE_ACTION = 'Try again';
 
 /** Smallest stage we will ever ask for, in CSS px. */
 const MIN_AVAILABLE_PX = 140;
 
-/** How much of last week's outline must stay visible beside this week's, in CSS px. */
-const GHOST_SLIVER_PX = 26;
+/** How far the figure may reach into the bottom scrim's gradient, in CSS px. */
+const FOOT_BLEED_PX = 24;
+
+/** Smallest stage the early weeks are allowed to hug down to, in CSS px. */
+const MIN_HUG_PX = 320;
+
+/**
+ * How much smaller an earlier week has to be before it is worth drawing as the
+ * nested growth ring. Below this the ring is a couple of pixels wide, which
+ * reads as a misregistered second copy rather than as growth.
+ */
+const GHOST_MAX_RATIO = 0.92;
 
 /**
  * The week the user last scrubbed to, kept across re-renders (calibrating or
@@ -102,22 +114,29 @@ export function resetSessionWeek() {
 }
 
 const CSS = `
-.size-screen { gap: 10px; }
+/* The picture is the screen. Everything else is either inside the stage or
+   below the fold, and the shell's top padding is trimmed back on this tab so
+   the stage starts six pixels higher. */
+.size-screen { gap: 8px; margin-top: -6px; }
 
-.size-eyebrow {
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  color: var(--accent);
-}
+.size-screen .screen-head { padding: 2px 2px 0; }
 
+/* One line, not three. The picture is the screen's reason to exist, and every
+   row of supporting type above it is a row the baby does not get. */
 .size-title {
-  font-size: 30px;
+  font-size: 24px;
   font-weight: 800;
   letter-spacing: -0.03em;
-  line-height: 1.15;
-  margin-top: 1px;
+  line-height: 1.2;
+}
+
+.size-title__sub {
+  margin-left: 8px;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--ink-soft);
+  white-space: nowrap;
 }
 
 .size-back {
@@ -125,59 +144,113 @@ const CSS = `
   border: 0;
   cursor: pointer;
   font-family: inherit;
-  margin-top: 6px;
-  padding: 7px 13px;
+  min-height: 44px;
+  padding: 10px 14px;
 }
 
 .size-back[hidden] { display: none; }
 
 /* --- The honesty badge --------------------------------------------------- */
 
-.size-fitbar {
+/* The badge sits inside the stage — it costs no row of its own in the screen's
+   flex column. It is laid out, not floated: at week 40 the crown reaches the
+   top of the picture area, and a floating badge would paint over the baby's
+   head. The extra bottom padding glues it to the crown below it, so badge and
+   baby read as one group rather than as two objects sharing a card. */
+.size-stage__top {
   display: flex;
   justify-content: center;
-  min-height: 28px;
-  padding: 0 2px;
+  padding: 0 var(--gutter) 14px;
 }
+
+/* Uncalibrated, the badge *is* the invitation: one always-visible element
+   instead of a badge plus a calibrate row that lived below the fold. */
+button.size-fit {
+  border: 0;
+  cursor: pointer;
+  font-family: inherit;
+  transition: transform var(--dur) var(--ease);
+}
+
+button.size-fit:active { transform: scale(0.98); transition-duration: 60ms; }
+
+.size-fit__do { color: var(--accent-ink); font-weight: 700; }
 
 .size-fit {
-  text-align: center;
   text-wrap: balance;
   line-height: 1.35;
-  padding: 5px 13px;
+  max-width: 100%;
 }
 
-.size-fit--true { background: var(--accent-soft); color: var(--accent); }
+/* The soul of the product deserves more than caption weight. */
+.size-fit--true {
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  font-size: 15px;
+  font-weight: 600;
+  padding: 7px 16px;
+}
 
+/* Same object, two tones — sage when the size is true, neutral when it is not.
+   The scaled state is the one 26 of the 39 weeks live in, so it cannot be a
+   fainter, smaller, differently-shaped thing that morphs mid-scrub. */
 .size-fit--scaled {
-  background: transparent;
+  background: color-mix(in srgb, var(--ink) 5%, transparent);
   color: var(--ink-soft);
+  font-size: 15px;
   font-weight: 500;
-  padding-left: 0;
-  padding-right: 0;
+  padding: 7px 16px;
 }
 
 .size-fit__pct { font-weight: 700; color: var(--ink); }
 
 /* --- The stage ----------------------------------------------------------- */
 
+/* Full-bleed: the stage runs to the edges of the phone and gives back the
+   gutters as picture. */
 .size-stage {
-  align-items: center;
-  justify-content: center;
-  padding: 16px 14px;
+  /* A column: badge, then the picture area (given an explicit height — the
+     room the baby may use), and the chip row floating over the bottom band
+     that is deliberately left below it. */
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  padding: 8px 6px 0;
+  margin: 0 calc(var(--gutter) * -1);
+  border-left: 0;
+  border-right: 0;
+  border-radius: 0 0 var(--radius) var(--radius);
 }
 
 .size-scroller {
   width: 100%;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
   overscroll-behavior: contain;
 }
 
 .size-stage--life .size-scroller {
+  align-items: flex-start;
   overflow: auto;
+  scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
+  /* Both cut edges dissolve, so a body that runs off the frame reads as
+     "there is more this way" rather than as a broken crop. */
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 18px,
+    #000 calc(100% - 18px),
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 18px,
+    #000 calc(100% - 18px),
+    transparent 100%
+  );
 }
 
 .size-canvas {
@@ -196,34 +269,165 @@ const CSS = `
   position: absolute;
   top: 0;
   left: 50%;
-  transition: transform 260ms var(--ease);
+  transition: transform 220ms var(--ease);
   will-change: transform;
 }
 
+/* During a drag the figure must track the thumb 1:1 — a running tween makes it
+   trail on elastic. The ease is for discrete jumps only. */
+.size-stage--scrubbing .size-figure { transition: none; }
+
 .size-figure--now path { fill: var(--accent); }
 
+/* Growth read as area, not as a line: an earlier week is painted as a paler
+   solid nested inside this week, so the full-strength sage rim around it *is*
+   the growth. A dashed stroke riding this week's own edge read as a torn
+   sticker at 1% and as stitching across the belly at 12%. */
 .size-figure--ghost path {
-  fill: none;
-  stroke: var(--accent);
-  stroke-width: 1.5;
-  opacity: 0.32;
+  fill: color-mix(in srgb, var(--accent) 46%, var(--card));
+  stroke: none;
+}
+
+/* Dark is redesigned, not inverted: a full-strength accent across the whole
+   stage is a glare panel at 3am, and it flattens the shape. Both layers are
+   tinted from the same knocked-back base so the growth rim survives. */
+@media (prefers-color-scheme: dark) {
+  .size-figure--now path { fill: color-mix(in srgb, var(--accent) 72%, var(--bg)); }
+  .size-figure--ghost path { fill: color-mix(in srgb, var(--accent) 40%, var(--bg)); }
+}
+
+/* The early weeks are a small figure in a large frame. A single soft wash of
+   sage behind them turns that emptiness into matting rather than a void. */
+.size-canvas--small::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: calc(var(--halo, 120px) * 2.6);
+  height: calc(var(--halo, 120px) * 2.6);
+  transform: translate(-50%, -35%);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--accent) 9%, transparent) 0%,
+    color-mix(in srgb, var(--accent) 0%, transparent) 62%
+  );
+  pointer-events: none;
+}
+
+/* --- Life-size wayfinding ------------------------------------------------ */
+
+/* Wayfinding for a wall of sage. The marks live on the stage, not on the
+   canvas: pinned to the frame they stay visible however far the body has been
+   scrolled, and they clear the scroller's fade at top and bottom. */
+.size-life-mark {
+  position: absolute;
+  left: var(--gutter);
+  z-index: 2;
+  padding: 3px 9px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--card) 88%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  pointer-events: none;
+}
+
+/* Clear of the honesty badge, which owns the top of the stage. */
+.size-life-mark--head { top: 62px; }
+.size-life-mark--foot { bottom: calc(var(--foot-h, 96px) + 12px); }
+.size-life-mark[hidden] { display: none; }
+
+/* Where along the baby you are: the wall of sage says "shoulders" instead of
+   nothing. */
+.size-life-rail {
+  position: absolute;
+  right: 8px;
+  top: 62px;
+  bottom: calc(var(--foot-h, 96px) + 12px);
+  z-index: 2;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--hairline);
+  pointer-events: none;
+}
+
+.size-life-rail[hidden] { display: none; }
+
+.size-life-rail__thumb {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-radius: inherit;
+  background: var(--accent);
 }
 
 /* "hidden" is an HTML property, not an SVG one — these layers are toggled by
    attribute, so the rule has to be explicit. */
 .size-figure[hidden] { display: none; }
 
-/* Floating chips: they cost the stage no vertical room, which is the whole
-   point — every pixel saved here is a pixel of real baby. */
-.size-stage__bar {
+/* The bottom of the stage is a scrim carrying everything the picture needs:
+   the numbers, the life-size control, and the scrubber itself. Overlaying them
+   instead of stacking them below gives the baby roughly a hundred more pixels
+   — on the one screen where pixels are the product. The figure fades into the
+   band rather than being sliced by it, and the stage measurement reserves all
+   but the topmost, purely-gradient strip. */
+.size-stage__foot {
   position: absolute;
-  left: 10px;
-  right: 10px;
-  bottom: 10px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
   display: flex;
-  align-items: center;
-  gap: 6px;
+  flex-direction: column;
+  gap: 2px;
+  padding: 22px 0 4px;
+  background: linear-gradient(
+    to top,
+    var(--card) 82%,
+    color-mix(in srgb, var(--card) 0%, transparent)
+  );
   pointer-events: none;
+}
+
+/* The scrim swallows pointer events so a drag on the picture is a drag on the
+   picture; the two controls inside it opt back in. */
+.size-stage__foot .size-scrub {
+  pointer-events: auto;
+  padding: 0 var(--gutter);
+}
+
+/* Aligned to the app gutter, like the header, the scrubber and every card —
+   the old 12 px inset hung the chips outside the column. */
+.size-stage__bar {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  padding: 0 var(--gutter) 2px;
+}
+
+/* Length, basis, weight and the fruit, above the fold, on every week. */
+.size-line {
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.35;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.size-line__sub {
+  display: block;
+  margin-top: 1px;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0;
+  color: var(--ink-soft);
 }
 
 .size-chip {
@@ -234,99 +438,53 @@ const CSS = `
   padding: 4px 10px;
   border-radius: var(--radius-pill);
   border: 1px solid var(--hairline);
-  background: color-mix(in srgb, var(--accent-soft) 88%, transparent);
+  /* Opaque: a chip the silhouette shows through is a chip nobody can read. */
+  background: var(--accent-soft);
   color: var(--ink-soft);
   white-space: nowrap;
 }
 
 .size-chip[hidden] { display: none; }
 
-.size-chip--ghost {
-  background: transparent;
-  border-style: dashed;
-  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
-}
-
 .size-chip--action {
+  position: relative;
   margin-left: auto;
+  flex: none;
   pointer-events: auto;
   cursor: pointer;
   font-family: inherit;
-  color: var(--accent);
+  color: var(--accent-ink);
   border-color: color-mix(in srgb, var(--accent) 35%, transparent);
-  min-height: 30px;
+  min-height: 26px;
+  padding: 5px 13px;
+  /* A resting transition, or the press animates in and snaps back out. */
+  transition: transform var(--dur) var(--ease);
 }
 
-.size-chip--action:active { transform: scale(0.97); }
-
-/* --- Stats --------------------------------------------------------------- */
-
-.size-stats {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  padding: 0 4px;
+/* The pill stays light; the hit box is 44 pt regardless, which is the iOS
+   rule — a target you can hit without a chip you have to look at. */
+.size-chip--action::after {
+  content: '';
+  position: absolute;
+  inset: -9px -8px;
 }
 
-.size-stats__line {
-  display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  gap: 2px 16px;
-}
-
-.size-stat { display: flex; align-items: baseline; gap: 6px; }
-
-.size-stat__v {
-  font-size: 22px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  font-variant-numeric: tabular-nums;
-}
-
-.size-stat__k { font-size: 13px; color: var(--ink-soft); }
-
-.size-compare { font-size: 15px; color: var(--ink-soft); }
+.size-chip--action:active { transform: scale(0.97); transition-duration: 60ms; }
 
 /* The .card rule sets display:flex, which outranks the UA [hidden] rule. */
 .size-note[hidden] { display: none; }
 
-/* --- Calibration entry points -------------------------------------------- */
-
-.size-calpill {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  border: 0;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  text-align: left;
-  padding: 11px 16px;
-  border-radius: var(--radius-pill);
-  background: var(--accent-soft);
-  color: var(--accent);
-  transition: transform var(--dur) var(--ease);
-}
-
-.size-calpill:active { transform: scale(0.985); }
-.size-calpill__chev { margin-left: auto; flex: none; opacity: 0.75; }
-
-.size-calbadge {
-  display: block;
-  text-align: center;
-  font-size: 12.5px;
-  color: var(--ink-soft);
-}
-
+/* A closing rule, then two lines that are ranked rather than stacked. */
 .size-foot {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding-top: 2px;
+  gap: 14px;
+  margin-top: 4px;
+  padding-top: 14px;
+  border-top: 1px solid var(--hairline);
 }
+
+.size-foot .disclaimer:last-child { font-size: 12px; opacity: 0.8; }
 `;
 
 /**
@@ -366,8 +524,10 @@ export function render(ctx) {
 
   /* --- Header ------------------------------------------------------------ */
 
-  const title = el('h1', { class: 'size-title' }, `Week ${startWeek}`);
-  const meta = el('p', { class: 'screen-head__meta' }, '');
+  /* The trimester rides on the title's own line: a separate eyebrow and a
+     separate meta paragraph cost three rows of type above the picture. */
+  const titleSub = el('span', { class: 'size-title__sub' }, '');
+  const title = el('h1', { class: 'size-title' }, `Week ${startWeek}`, ' ', titleSub);
 
   const backBtn = /** @type {HTMLElement} */ (
     el(
@@ -385,32 +545,54 @@ export function render(ctx) {
   const header = el(
     'header',
     { class: 'screen-head' },
-    el(
-      'div',
-      {},
-      el('p', { class: 'size-eyebrow' }, 'True size'),
-      title,
-      meta
-    ),
+    el('div', {}, title),
     backBtn
   );
 
   /* --- Honesty badge ----------------------------------------------------- */
 
-  const fitBadge = el('p', { class: 'badge size-fit', 'aria-live': 'polite' }, '');
-  const fitBar = el('div', { class: 'size-fitbar' }, fitBadge);
+  /* Only a calibration that landed *inside* the slider earns the badge. A value
+     sitting on an endpoint means the user ran out of slider before the outline
+     matched their card, so the render is still a guess and must not claim
+     otherwise — the honest hedge is the whole point of the badge. */
+  const calibrated = isTrustedCalibration(settings);
+
+  /* A button, because until this device is calibrated the badge is also the
+     invitation to calibrate — one always-visible element in place of a badge
+     plus a row that was never once seen above the fold. */
+  const fitBadge = /** @type {HTMLElement} */ (
+    calibrated
+      ? el('p', { class: 'badge size-fit', 'aria-live': 'polite' })
+      : el('button', {
+          class: 'badge size-fit',
+          type: 'button',
+          'aria-live': 'polite',
+          onClick: () => openCalibration(ctx)
+        })
+  );
+  const fitBar = el('div', { class: 'size-stage__top' }, fitBadge);
 
   /* --- Stage ------------------------------------------------------------- */
 
   const ghostFigure = svgFigure('size-figure--ghost');
   const nowFigure = svgFigure('size-figure--now');
 
-  const canvas = el('div', { class: 'size-canvas' }, ghostFigure.svg, nowFigure.svg);
-  const scroller = el('div', { class: 'size-scroller' }, canvas);
+  /* The ghost draws *after* the fill, so last week reads as a dashed ring
+     sitting inside this week rather than as a second baby standing beside it. */
+  const headMark = el('span', { class: 'size-life-mark size-life-mark--head', hidden: true }, 'head');
+  const footMark = el('span', { class: 'size-life-mark size-life-mark--foot', hidden: true }, '');
+  const railThumb = el('span', { class: 'size-life-rail__thumb' });
+  const rail = /** @type {HTMLElement} */ (
+    el('div', { class: 'size-life-rail', hidden: true, 'aria-hidden': 'true' }, railThumb)
+  );
+  const canvas = el('div', { class: 'size-canvas' }, nowFigure.svg, ghostFigure.svg);
+  const scroller = /** @type {HTMLElement} */ (el('div', { class: 'size-scroller' }, canvas));
 
-  const basisChip = el('span', { class: 'size-chip' }, '');
-  /* Dashed, like the outline it names, so "week 16" needs no further caption. */
-  const ghostChip = el('span', { class: 'size-chip size-chip--ghost' }, '');
+  /* One line carrying what the screen is actually about: how long, measured
+     which way, how heavy — and the fruit, warmly, on the line below. */
+  const statLine = el('p', { class: 'size-line' }, '');
+  const compareLine = el('span', { class: 'size-line__sub' }, '');
+  statLine.append(compareLine);
 
   const lifeBtn = /** @type {HTMLElement} */ (
     el(
@@ -422,20 +604,15 @@ export function render(ctx) {
         onClick: () => {
           state.lifeSize = !state.lifeSize;
           relayout();
-          if (state.lifeSize) scroller.scrollTop = 0;
+          if (state.lifeSize) revealScroll();
         }
       },
       'Life-size'
     )
   );
 
-  const stage = /** @type {HTMLElement} */ (
-    el(
-      'section',
-      { class: 'stage size-stage' },
-      scroller,
-      el('div', { class: 'size-stage__bar' }, basisChip, ghostChip, lifeBtn)
-    )
+  const bar = /** @type {HTMLElement} */ (
+    el('div', { class: 'size-stage__bar' }, statLine, lifeBtn)
   );
 
   /* --- Scrubber ---------------------------------------------------------- */
@@ -444,28 +621,27 @@ export function render(ctx) {
     week: startWeek,
     min: MIN_CONTENT_WEEK,
     max: MAX_CONTENT_WEEK,
-    hint: 'Drag to sweep the weeks — the faint outline is the week before.',
+    hint: hintFor(ghostWeekFor(startWeek)),
     onChange: (week) => setWeek(week, true)
   });
 
-  /* --- Stats ------------------------------------------------------------- */
-
-  const lengthValue = el('span', { class: 'size-stat__v' }, '');
-  const lengthKey = el('span', { class: 'size-stat__k' }, '');
-  const weightValue = el('span', { class: 'size-stat__v' }, '');
-  const compareLine = el('p', { class: 'size-compare' }, '');
-
-  const stats = el(
-    'div',
-    { class: 'size-stats' },
-    el(
-      'div',
-      { class: 'size-stats__line' },
-      el('span', { class: 'size-stat' }, lengthValue, lengthKey),
-      el('span', { class: 'size-stat' }, weightValue, el('span', { class: 'size-stat__k' }, 'weight'))
-    ),
-    compareLine
+  /* The scrubber rides the stage's bottom scrim instead of costing a hundred
+     pixels of its own row beneath it. */
+  const foot = /** @type {HTMLElement} */ (
+    el('div', { class: 'size-stage__foot' }, bar, scrub)
   );
+
+  const stage = /** @type {HTMLElement} */ (
+    el('section', { class: 'stage size-stage' }, fitBar, scroller, foot, headMark, footMark, rail)
+  );
+
+  /* The figure follows the thumb exactly while a drag is live. */
+  scrub.addEventListener('scrub-start', () => {
+    stage.classList.add('size-stage--scrubbing');
+  });
+  scrub.addEventListener('scrub-end', () => {
+    stage.classList.remove('size-stage--scrubbing');
+  });
 
   /* --- The week 19 → 20 note --------------------------------------------- */
 
@@ -474,54 +650,11 @@ export function render(ctx) {
   );
   noteCard.hidden = true;
 
-  /* --- Calibration entry points ------------------------------------------ */
-
-  /* Only a calibration that landed *inside* the slider earns the badge. A value
-     sitting on an endpoint means the user ran out of slider before the outline
-     matched their card, so the render is still a guess and must not claim
-     otherwise — the honest hedge is the whole point of the badge. */
-  const calibrated = isTrustedCalibration(settings);
-
-  const calPill = calibrated
-    ? null
-    : el(
-        'button',
-        {
-          class: 'size-calpill',
-          type: 'button',
-          onClick: () => openCalibration(ctx)
-        },
-        isCalibrated(settings) ? RECALIBRATE_PROMPT : CALIBRATE_PROMPT,
-        el(
-          'svg',
-          {
-            class: 'size-calpill__chev',
-            width: '8',
-            height: '13',
-            viewBox: '0 0 8 13',
-            'aria-hidden': 'true'
-          },
-          el('path', {
-            d: 'M1.5 1.5 L6.5 6.5 L1.5 11.5',
-            fill: 'none',
-            stroke: 'currentColor',
-            'stroke-width': '2',
-            'stroke-linecap': 'round',
-            'stroke-linejoin': 'round'
-          })
-        )
-      );
-
-  const calBadge = calibrated
-    ? el('p', { class: 'size-calbadge' }, `✓ ${CALIBRATED_BADGE}`)
-    : null;
-
   /* --- Footer ------------------------------------------------------------ */
 
   const footer = el(
     'footer',
     { class: 'size-foot' },
-    calBadge,
     el('p', { class: 'disclaimer' }, SIZE_AVERAGES_NOTE),
     disclaimer()
   );
@@ -531,15 +664,11 @@ export function render(ctx) {
       'div',
       { class: 'screen size-screen' },
       header,
-      fitBar,
       stage,
-      scrub,
-      /* Above the stats, and so above the fold: the one week this note appears
-         is the week the numbers jump, and an unseen explanation explains
-         nothing. It costs the stage a little height on week 20 alone. */
+      /* Directly under the stage, and so still within reach: the one week this
+         note appears is the week the numbers jump, and an unseen explanation
+         explains nothing. */
       noteCard,
-      stats,
-      calPill,
       footer
     )
   );
@@ -550,18 +679,18 @@ export function render(ctx) {
    * The box the baby may occupy.
    *
    * Measured, never assumed: the visual viewport, less the app's own padding,
-   * less every piece of chrome that shares the first screenful with the stage
-   * (the header, the honesty badge, the scrubber, the stats line), less the tab
-   * bar as it actually renders — safe-area padding and all. Everything below
-   * the stats (the ruler note, the calibration pill, the footer) is allowed to
-   * fall below the fold, so the picture gets the room it deserves.
-   * @returns {{ availH: number, availW: number }} CSS pixels.
+   * less the one line of chrome that shares the first screenful with the stage
+   * (the header), less the stage's own frame, less the tab bar as it actually
+   * renders — safe-area padding and all. Everything below the stage (the ruler
+   * note, the footer) is allowed to fall below the fold, because the picture is
+   * what the screen is for.
+   * @returns {{ availH: number, availW: number, frameY: number }} CSS pixels.
    */
   function measureAvailable() {
     const view = window.visualViewport;
     const viewportH = (view && view.height) || window.innerHeight || 0;
     if (!viewportH || !screen.isConnected) {
-      return { availH: MIN_AVAILABLE_PX, availW: MIN_AVAILABLE_PX };
+      return { availH: MIN_AVAILABLE_PX, availW: MIN_AVAILABLE_PX, frameY: 0 };
     }
 
     const main = screen.parentElement;
@@ -569,10 +698,12 @@ export function render(ctx) {
     const padTop = mainStyle ? num(mainStyle.paddingTop) : 0;
     const padBottom = mainStyle ? num(mainStyle.paddingBottom) : 0;
     /* The tab bar carries its own safe-area padding, so its rendered height is
-       the honest reserve; `.app-main`'s padding is the fallback if it's gone. */
+       the honest reserve; `.app-main`'s padding is the fallback if it's gone.
+       Nothing is added on top of it: the stage's own scrim already separates
+       the picture from the bar. */
     const tabbar = document.querySelector('.tabbar');
     const tabH = tabbar ? tabbar.getBoundingClientRect().height : 0;
-    const bottomReserve = tabH > 0 ? tabH + 12 : padBottom;
+    const bottomReserve = tabH > 0 ? tabH : padBottom;
 
     const screenStyle = getComputedStyle(screen);
     const gap = num(screenStyle.rowGap);
@@ -582,8 +713,8 @@ export function render(ctx) {
     for (const child of Array.from(screen.children)) {
       if (/** @type {HTMLElement} */ (child).hidden) continue;
       count += 1;
-      if (child !== stage) chrome += child.getBoundingClientRect().height;
-      if (child === stats) break;
+      if (child === stage) break;
+      chrome += child.getBoundingClientRect().height;
     }
     chrome += gap * Math.max(0, count - 1);
 
@@ -591,13 +722,21 @@ export function render(ctx) {
     const stagePadY = num(stageStyle.paddingTop) + num(stageStyle.paddingBottom);
     const stagePadX = num(stageStyle.paddingLeft) + num(stageStyle.paddingRight);
     const stageBorderY = num(stageStyle.borderTopWidth) + num(stageStyle.borderBottomWidth);
+    /* The badge band on top is frame. The bottom overlay is mostly frame too —
+       but its top strip is pure gradient, and a foot that reaches into it
+       dissolves rather than being cut, so only the opaque part is reserved. */
+    const footH = foot.getBoundingClientRect().height;
+    const topH = fitBar.getBoundingClientRect().height;
+    const frame =
+      stagePadY + stageBorderY + topH + Math.max(0, footH - FOOT_BLEED_PX);
 
     const availH = Math.max(
       MIN_AVAILABLE_PX,
-      viewportH - padTop - bottomReserve - chrome - stagePadY - stageBorderY
+      viewportH - padTop - bottomReserve - chrome - frame
     );
     const availW = Math.max(MIN_AVAILABLE_PX, stage.clientWidth - stagePadX);
-    return { availH, availW };
+    stage.style.setProperty('--foot-h', `${Math.round(footH)}px`);
+    return { availH, availW, frameY: frame };
   }
 
   /* --- Painting ---------------------------------------------------------- */
@@ -630,6 +769,8 @@ export function render(ctx) {
   let nowLayer = null;
   /** @type {{ sil: Silhouette, k: number, bodyH: number, width: number }|null} */
   let ghostLayer = null;
+  /** @type {number|null} The earlier week the nested shape is showing. */
+  let ghostWeek = null;
 
   /**
    * Fill in everything that depends on the week but not on the viewport.
@@ -640,27 +781,35 @@ export function render(ctx) {
     const week = state.week;
     const row = SIZE_TABLE[week];
     const units = settingsNow.units;
+    const nickname = (settingsNow.nickname ?? '').trim();
 
-    title.textContent = `Week ${week}`;
+    title.firstChild.nodeValue = `Week ${week}`;
     const trimester = trimesterOf(week);
-    meta.textContent =
+    titleSub.textContent =
       week === currentWeek
-        ? `${trimesterLabel(trimester)} · this week`
-        : trimesterLabel(trimester);
+        ? `· ${trimesterLabel(trimester)} · this week`
+        : `· ${trimesterLabel(trimester)}`;
     backBtn.hidden = week === currentWeek;
 
     if (!row) return;
 
-    /* Stats — always straight from SIZE_TABLE, so the screen is complete even
-       when a week's authored prose hasn't landed. */
-    lengthValue.textContent = formatLength(row.lengthMm, units);
-    lengthKey.textContent = basisLabel(row.basis);
-    weightValue.textContent = formatWeight(row.weightG, units);
-    compareLine.textContent =
-      `About the size of ${withArticle(row.comparison.name)}` +
+    /* The line under the picture — always straight from SIZE_TABLE, so the
+       screen is complete even when a week's authored prose hasn't landed. */
+    const fruit =
+      withArticle(row.comparison.name) +
       (row.comparison.emoji ? ` ${row.comparison.emoji}` : '');
+    statLine.firstChild.nodeValue =
+      `${formatLength(row.lengthMm, units)} ${basisLabel(row.basis)} · ` +
+      `${formatWeight(row.weightG, units)} · ${fruit}`;
+    /* The Size tab is the screen a grandparent gets shown — it should know the
+       baby's name too. That sentence earns a second line; without a nickname
+       the fruit is already on the first one, and the line is not repeated. */
+    compareLine.textContent = nickname
+      ? `${nickname} is about the size of ${fruit}`
+      : '';
+    compareLine.hidden = !nickname;
 
-    basisChip.textContent = basisLabel(row.basis);
+    footMark.textContent = row.basis === 'crown-heel' ? 'heel' : 'bottom';
 
     /* The change of ruler at week 20 needs explaining exactly when it bites:
        on week 20 itself, and on any jump that crosses the boundary. */
@@ -671,15 +820,21 @@ export function render(ctx) {
     noteCard.hidden = !(week === BASIS_SWITCH_WEEK || crossed);
 
     nowLayer = layerFor(week);
-    ghostLayer = week > MIN_CONTENT_WEEK ? layerFor(week - 1) : null;
+    /* The ghost is a growth comparison, so it is only drawn when it compares
+       something: same stage art, same ruler, and visibly smaller. Week over
+       week that stops being true after about week 24 (w39 → w40 is one per
+       cent), so the screen walks back to the nearest week that qualifies and
+       the caption names it. When nothing qualifies there is no ghost and no
+       clause — that silence is the treatment, not an omission. */
+    ghostWeek = ghostWeekFor(week);
+    ghostLayer = ghostWeek === null ? null : layerFor(ghostWeek);
+
+    scrub.setHint(hintFor(ghostWeek));
 
     if (nowLayer) nowFigure.draw(nowLayer.sil);
     nowFigure.show(Boolean(nowLayer));
 
     if (ghostLayer) ghostFigure.draw(ghostLayer.sil);
-    ghostFigure.show(Boolean(ghostLayer));
-    ghostChip.hidden = !ghostLayer;
-    if (ghostLayer) ghostChip.textContent = `week ${week - 1}`;
 
     relayout();
   }
@@ -693,17 +848,14 @@ export function render(ctx) {
     /* Off-document (the first paint happens before main.js mounts us) there is
        nothing honest to measure, so wait rather than guess. */
     if (!nowLayer || !screen.isConnected) return;
-    const { availH, availW } = measureAvailable();
+    const { availH, availW, frameY } = measureAvailable();
 
     /* The percentage on the badge is a promise about the baby, so the fit is
-       measured against the baby alone. The ghost only asks for a fixed sliver
-       of elbow room on the left, which costs the render a few per cent at most
-       and is the difference between a visible comparison and a hidden one. */
-    const sliver = ghostLayer ? GHOST_SLIVER_PX : 0;
-    const widthBox = Math.max(availW - sliver, availW * 0.5);
+       measured against the baby alone — and the ghost, nested inside it, asks
+       for no elbow room at all. */
     const fit = Math.min(
       fitScale(nowLayer.bodyH, availH),
-      fitScale(nowLayer.width, widthBox)
+      fitScale(nowLayer.width, availW)
     );
     const outgrown = fit < 1;
     const life = state.lifeSize && outgrown;
@@ -712,38 +864,85 @@ export function render(ctx) {
     const contentH = nowLayer.bodyH * applied;
 
     place(nowFigure, nowLayer, applied, 0);
-    if (ghostLayer) {
-      /* Slide the ghost left until it clears the current outline, then a little
-         further, so what shows is unmistakably last week and not a stray edge. */
-      const clearance = Math.max(0, nowLayer.width - ghostLayer.width) * applied;
-      place(ghostFigure, ghostLayer, applied, -(clearance / 2) - sliver);
-    }
+    /* Both layers share the crown anchor and one uniform factor, so last week
+       lands strictly inside this week: a tree ring, not a double exposure. */
+    if (ghostLayer) place(ghostFigure, ghostLayer, applied, 0);
+    ghostFigure.show(Boolean(ghostLayer) && !life);
 
+    /* Once the baby has outgrown the screen the frame is pinned to the room
+       available, so the picture never marches up and down under the user's
+       thumb. While it still fits — weeks 4 to about 15 — the frame hugs the
+       figure instead, with a floor, so week 8 is a small baby in a small stage
+       rather than 96 px of silhouette adrift in 500 px of nothing. */
+    const stageH = outgrown
+      ? availH
+      : Math.min(availH, Math.max(MIN_HUG_PX, contentH + 96));
+
+    stage.style.height = `${Math.round(stageH + frameY)}px`;
     canvas.style.height = `${Math.round(contentH)}px`;
     canvas.style.width = life
-      ? `${Math.max(Math.round(nowLayer.width * applied + sliver * 2), Math.round(availW))}px`
+      ? `${Math.max(Math.round(nowLayer.width * applied), Math.round(availW))}px`
       : '100%';
 
+    /* A soft halo behind the smallest weeks: matting, not emptiness. */
+    const small = !life && contentH < stageH * 0.45;
+    canvas.classList.toggle('size-canvas--small', small);
+    if (small) canvas.style.setProperty('--halo', `${Math.round(contentH)}px`);
+
     stage.classList.toggle('size-stage--life', life);
-    scroller.style.maxHeight = life ? `${Math.round(availH)}px` : '';
+    scroller.style.height = `${Math.round(stageH)}px`;
+
+    /* In life-size there is no ghost to point at. */
+    scrub.setHint(hintFor(life ? null : ghostWeek));
+
+    headMark.hidden = !life;
+    footMark.hidden = !life;
+    rail.hidden = !life;
+    if (life) paintRail();
 
     lifeBtn.hidden = !outgrown;
     lifeBtn.textContent = life ? 'Fit to screen' : 'Life-size';
     lifeBtn.setAttribute('aria-pressed', String(life));
 
+    const nickname = (ctx.settings.nickname ?? '').trim();
+    const trueSize = nickname ? `${nickname}, actual size` : 'Actual size';
+    const toHeel = footMark.textContent === 'heel' ? 'head to heel' : 'head to bottom';
+
+    /* Outgrowing the screen is one of the few genuine milestones this app can
+       mark, so the week it happens says so. */
+    const justOutgrew =
+      outgrown &&
+      state.previousWeek !== null &&
+      state.previousWeek < state.week &&
+      fitsAt(state.previousWeek, availH, availW);
+
     if (!outgrown) {
-      setBadge('true', 'Actual size');
+      if (calibrated) {
+        /* The reward for calibrating belongs here, on the badge the user came
+           for — not on a grey line below the fold. */
+        setBadge('true', `${trueSize} ✓ calibrated`);
+      } else {
+        /* Uncalibrated, the render is a good guess, not a promise — and the
+           badge is where the promise is offered. */
+        setBadge('true', [CALIBRATE_LEAD, calibrateWord()]);
+      }
     } else if (life) {
-      setBadge('true', 'Actual size — scroll to travel the whole length');
+      setBadge('true', `Actual size — scroll ${toHeel}`);
+    } else if (justOutgrew) {
+      setBadge('true', `Week ${state.week} — your baby just outgrew the screen 🎉`);
+    } else if (calibrated) {
+      setBadge('scaled', [
+        'Shown at ',
+        el('span', { class: 'size-fit__pct' }, `${pct}%`),
+        ' — your baby outgrew the screen 🎉'
+      ]);
     } else {
-      setBadge(
-        'scaled',
-        [
-          'Shown at ',
-          el('span', { class: 'size-fit__pct' }, `${pct}%`),
-          ' — your baby has outgrown the screen 🎉'
-        ]
-      );
+      setBadge('scaled', [
+        'Shown at ',
+        el('span', { class: 'size-fit__pct' }, `${pct}%`),
+        ' · ',
+        calibrateWord()
+      ]);
     }
 
     nowFigure.svg.setAttribute(
@@ -753,6 +952,47 @@ export function render(ctx) {
     );
 
     canvas.classList.add('size-canvas--ready');
+  }
+
+  /**
+   * The tappable half of the badge while this device is uncalibrated.
+   * @returns {HTMLElement}
+   */
+  function calibrateWord() {
+    return /** @type {HTMLElement} */ (
+      el(
+        'span',
+        { class: 'size-fit__do' },
+        isCalibrated(ctx.settings) ? RECALIBRATE_ACTION : CALIBRATE_ACTION
+      )
+    );
+  }
+
+  /**
+   * Whether a week would have fitted in the box this one was measured against.
+   * Used only to catch the week the baby outgrows the screen.
+   * @param {number} week
+   * @param {number} availH
+   * @param {number} availW
+   * @returns {boolean}
+   */
+  function fitsAt(week, availH, availW) {
+    const layer = layerFor(week);
+    if (!layer) return false;
+    return Math.min(fitScale(layer.bodyH, availH), fitScale(layer.width, availW)) >= 1;
+  }
+
+  /**
+   * Draw the life-size progress rail: where along the baby the frame is.
+   * @returns {void}
+   */
+  function paintRail() {
+    const total = scroller.scrollHeight || 1;
+    const view = scroller.clientHeight || 1;
+    const share = Math.max(0.08, Math.min(1, view / total));
+    const at = Math.max(0, Math.min(1 - share, (scroller.scrollTop || 0) / total));
+    railThumb.style.height = `${(share * 100).toFixed(1)}%`;
+    railThumb.style.top = `${(at * 100).toFixed(1)}%`;
   }
 
   /**
@@ -773,6 +1013,44 @@ export function render(ctx) {
     style.transformOrigin = `50% ${crown}px`;
     style.transform =
       `translate(calc(-50% + ${dx.toFixed(2)}px), ${-crown}px) scale(${s})`;
+  }
+
+  /**
+   * Entering life-size, nudge the scroller and let it settle: a wall of sage
+   * with no visible head or heel has to declare that it scrolls, and one small
+   * movement says it better than a sentence.
+   * @returns {void}
+   */
+  function revealScroll() {
+    scroller.scrollTop = 0;
+    if (typeof scroller.scrollTo !== 'function') return;
+    scroller.scrollTo({ top: 40, behavior: 'smooth' });
+    setTimeout(() => {
+      if (scroller.isConnected) scroller.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 320);
+  }
+
+  /**
+   * The earlier week to nest inside this one, or `null` when none qualifies.
+   *
+   * It must be drawn by the same hand (same stage art), measured by the same
+   * ruler (crown-rump and crown-heel compare nothing), and be small enough
+   * that the growth rim is a shape rather than a hairline.
+   * @param {number} week
+   * @returns {number|null}
+   */
+  function ghostWeekFor(week) {
+    const now = SIZE_TABLE[week];
+    const sil = silhouetteForWeek(week);
+    if (!now || !sil) return null;
+    for (let w = week - 1; w >= Math.max(MIN_CONTENT_WEEK, sil.minWeek); w -= 1) {
+      const before = SIZE_TABLE[w];
+      if (!before || before.basis !== now.basis) return null;
+      const art = silhouetteForWeek(w);
+      if (!art || art.id !== sil.id) return null;
+      if (before.lengthMm / now.lengthMm <= GHOST_MAX_RATIO) return w;
+    }
+    return null;
   }
 
   /**
@@ -833,15 +1111,39 @@ export function render(ctx) {
     });
   }
 
+  /* Mobile Safari fires `resize` when the URL bar collapses, which is ~60–100
+     px of visual viewport. Re-measuring on that made the baby re-scale mid
+     scroll and "Shown at 65%" quietly become "Shown at 72%", so only a real
+     change of viewport counts. Rotation bypasses the gate entirely. */
+  let lastViewH = 0;
   const onViewportChange = () => {
+    if (!screen.isConnected) {
+      teardown();
+      return;
+    }
+    const view = window.visualViewport;
+    const h = (view && view.height) || window.innerHeight || 0;
+    const w = window.innerWidth;
+    if (w === lastWidth && Math.abs(h - lastViewH) < 140) return;
+    lastViewH = h;
+    relayout();
+  };
+
+  const onRotate = () => {
     if (!screen.isConnected) {
       teardown();
       return;
     }
     relayout();
   };
+
+  const onScrollerScroll = () => {
+    if (state.lifeSize) paintRail();
+  };
+
   window.addEventListener('resize', onViewportChange);
-  window.addEventListener('orientationchange', onViewportChange);
+  window.addEventListener('orientationchange', onRotate);
+  scroller.addEventListener('scroll', onScrollerScroll, { passive: true });
 
   /**
    * Drop every listener this render created. `main.js` calls it before the
@@ -851,7 +1153,8 @@ export function render(ctx) {
    */
   function teardown() {
     window.removeEventListener('resize', onViewportChange);
-    window.removeEventListener('orientationchange', onViewportChange);
+    window.removeEventListener('orientationchange', onRotate);
+    scroller.removeEventListener('scroll', onScrollerScroll);
     if (observer) {
       observer.disconnect();
       observer = null;
@@ -894,12 +1197,6 @@ function svgFigure(className) {
       path
     )
   );
-
-  /* A hairline that ignores the transform, so the ghost reads the same at
-     week 5 and at week 42. */
-  if (className.endsWith('ghost')) {
-    path.setAttribute('vector-effect', 'non-scaling-stroke');
-  }
 
   let drawn = '';
 
@@ -961,6 +1258,19 @@ function isTrustedCalibration(settings) {
   if (!isCalibrated(settings)) return false;
   const px = /** @type {number} */ (settings.pxPerMm);
   return px > CAL_MIN_PX_PER_MM && px < CAL_MAX_PX_PER_MM;
+}
+
+/**
+ * The scrubber's one-line hint. It only names the nested shape on the weeks
+ * where one is actually drawn — the app must never point at something that
+ * isn't on screen.
+ * @param {number|null} ghostWeek The week drawn inside this one, if any.
+ * @returns {string}
+ */
+function hintFor(ghostWeek) {
+  return ghostWeek === null
+    ? 'Drag to sweep the weeks and watch your baby grow.'
+    : `Drag to sweep the weeks — the paler shape inside is week ${ghostWeek}.`;
 }
 
 /**

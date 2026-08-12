@@ -14,6 +14,30 @@ import { chevron } from './icons.js';
 /** @typedef {import('../../lib/types.js').UnitSystem} UnitSystem */
 
 /**
+ * The app's own sage heart, used when a week's comparison carries no emoji.
+ * Nine of the 39 weeks have none, and letting the slot collapse moved the whole
+ * card 56 px left on those weeks.
+ * @returns {SVGElement}
+ */
+function heartMark() {
+  return /** @type {SVGElement} */ (
+    el(
+      'svg',
+      /* Sized to the 40 px emoji slot it stands in for, and at full strength:
+         this is the app's own mark, not a de-emphasised favourite glyph. */
+      { width: '34', height: '31', viewBox: '0 0 38 34', 'aria-hidden': 'true' },
+      el('path', {
+        d:
+          'M19 33C7.5 25.4 1 19.2 1 11.7 1 5.9 5.6 1.5 11.3 1.5c3.2 0 6.1 1.5 7.7 3.9 ' +
+          '1.6-2.4 4.5-3.9 7.7-3.9C32.4 1.5 37 5.9 37 11.7 37 19.2 30.5 25.4 19 33z',
+        fill: 'var(--accent)',
+        opacity: '0.9'
+      })
+    )
+  );
+}
+
+/**
  * `"a"` or `"an"` for a comparison name ("an avocado", "a pear").
  * @param {string} name
  * @returns {string}
@@ -56,7 +80,11 @@ export function sizeCard(options) {
     el(
       'div',
       { class: 'today-size' },
-      emoji ? el('span', { class: 'today-size__emoji', 'aria-hidden': 'true' }, emoji) : null,
+      el(
+        'span',
+        { class: 'today-size__emoji', 'aria-hidden': 'true' },
+        emoji || heartMark()
+      ),
       el(
         'div',
         { class: 'today-size__text' },
