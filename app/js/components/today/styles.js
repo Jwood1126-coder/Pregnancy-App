@@ -255,6 +255,103 @@ const CSS = `
 
 .today-callout__text { font-size: 15px; line-height: 1.5; text-wrap: pretty; }
 
+/* --- Meal-kit picks (inside the nutrition card) -------------------------- */
+
+/* A bonus, not a billboard: no second card, no brand colour, no logo. A
+   hairline says "and one more thing" and the type steps down from there. */
+.today-kit {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--hairline);
+}
+
+.today-kit__head {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.today-kit__intro {
+  margin-top: 4px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  text-wrap: pretty;
+}
+
+.today-kit__list {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.today-kit__name {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  text-wrap: pretty;
+}
+
+.today-kit__gives {
+  margin-top: 2px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  text-wrap: pretty;
+}
+
+/* The pregnancy tweak is the one line here that matters for safety, so it
+   gets the accent rule the food-safety callout uses — at a whisper. */
+.today-kit__tweak {
+  margin-top: 5px;
+  padding-left: 11px;
+  border-left: 2px solid var(--accent-soft);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  text-wrap: pretty;
+}
+
+.today-kit__tweak-label,
+.today-kit__tip-label {
+  display: inline;
+  margin-right: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent-ink);
+}
+
+/* Deliberately unfilled. The card already has one accent-soft block — the
+   food-safety callout — and a second one directly under it made the bonus
+   section shout as loudly as the safety line it sits beneath. */
+.today-kit__tip {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--hairline);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  text-wrap: pretty;
+}
+
+/* The standing caveat: menus rotate, and this app cannot see theirs. */
+.today-kit__note {
+  margin-top: 10px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--ink-soft);
+  opacity: 0.85;
+  text-wrap: pretty;
+}
+
 /* --- To-dos ------------------------------------------------------------- */
 
 .today-todos { display: flex; flex-direction: column; }

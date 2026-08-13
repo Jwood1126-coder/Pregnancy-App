@@ -452,6 +452,57 @@ const SHOTS = [
     }
   },
   {
+    /* The meal-kit picks only render when Settings says the family gets a kit,
+       so this shot drives the real toggle rather than seeding storage — the
+       promise in Settings and the section it produces are one flow. */
+    name: 'today-mealkit',
+    path: `/?reset=1&due=${DUE}`,
+    act: async (page) => {
+      await click(page, 'button[aria-label="Settings"]', 420);
+      await click(page, 'button[data-meal-kit="hellofresh"]');
+      await click(page, '.sheet__head .btn', 420);
+      await scrollToCard(page, 'On the menu this week');
+      /* The section sits below the food ideas; put it on screen, not the card
+         title, or the shot is of the state above the thing under test. */
+      await page.evaluate(
+        `(() => {
+           const kit = document.querySelector('.today-kit');
+           if (!kit) return;
+           const top = kit.getBoundingClientRect().top + window.scrollY;
+           window.scrollTo(0, Math.max(0, top - 24));
+         })()`
+      );
+      await page.waitForQuiet(160);
+    },
+    check: async (page) => {
+      const s = await probe(page, `(() => {
+        const kit = document.querySelector('.today-kit');
+        const box = kit ? kit.getBoundingClientRect() : null;
+        return {
+          found: !!kit,
+          head: kit?.querySelector('.today-kit__head')?.textContent ?? '',
+          intro: kit?.querySelector('.today-kit__intro')?.textContent ?? '',
+          dishes: kit ? kit.querySelectorAll('.today-kit__dish').length : 0,
+          tip: kit?.querySelector('.today-kit__tip')?.textContent ?? '',
+          note: kit?.querySelector('.today-kit__note')?.textContent ?? '',
+          inView: box ? box.top >= -2 && box.top < 200 : false,
+          inMenuCard: !!kit?.closest('.card')
+        };
+      })()`);
+      return failures({
+        'meal-kit section rendered': s.found,
+        'section is inside the menu card': s.inMenuCard,
+        'heading is conditional': /^If you get a HelloFresh box$/.test(s.head.trim()),
+        'heading claims no menu knowledge': !/from your|on your menu|in your box/i.test(s.head),
+        'intro says these are regulars': /come around on HelloFresh menus regularly/.test(s.intro),
+        'two or three dishes shown': s.dishes >= 2 && s.dishes <= 3,
+        'picking tip present': /Picking tip/.test(s.tip),
+        'rotation footnote present': /rotate/i.test(s.note),
+        'section is on screen': s.inView
+      });
+    }
+  },
+  {
     name: 'today-todos',
     path: `/?reset=1&due=${DUE}`,
     act: async (page) => {

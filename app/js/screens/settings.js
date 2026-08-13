@@ -1,8 +1,9 @@
 /**
  * Settings — presented by main.js as a full-screen sheet from Today's gear.
  *
- * Phase 1 only: due date, nickname, units, dietary preferences, recalibrating
- * true size, how weeks are counted, the full disclaimer, and the version line.
+ * Phase 1 only: due date, nickname, units, dietary preferences, whether the
+ * family gets a meal kit, recalibrating true size, how weeks are counted, the
+ * full disclaimer, and the version line.
  * (Export / import backup arrives with Phase 2.)
  */
 
@@ -17,7 +18,7 @@ import { isPlausibleDueDate, dueDateBounds } from '../lib/weekMath.js';
 /** @typedef {import('../lib/types.js').DietTag} DietTag */
 
 /** Shown on the version line. */
-export const APP_VERSION = '0.1.0';
+export const APP_VERSION = '0.2.0';
 
 /** Human labels for the diet tags. */
 const DIET_LABELS = /** @type {Object<string, string>} */ ({
@@ -175,6 +176,44 @@ export function render(ctx) {
     )
   );
 
+  /* --- Meal kit ----------------------------------------------------------- */
+
+  const mealKitChip = /** @type {HTMLElement} */ (
+    el(
+      'button',
+      {
+        class: 'chip',
+        type: 'button',
+        'data-meal-kit': 'hellofresh',
+        'aria-pressed': String(settings.mealKit === 'hellofresh'),
+        onClick: () => {
+          const on = mealKitChip.getAttribute('aria-pressed') !== 'true';
+          mealKitChip.setAttribute('aria-pressed', String(on));
+          ctx.update({ mealKit: on ? 'hellofresh' : null });
+        }
+      },
+      'We get HelloFresh'
+    )
+  );
+
+  const mealKitCard = card(
+    { title: 'Meal kit' },
+    el('div', { class: 'chips', role: 'group', 'aria-label': 'Meal kit' }, mealKitChip),
+    el(
+      'p',
+      { class: 'field__hint' },
+      'Turn this on and each week’s food ideas pick up a few meal-kit dishes that ' +
+        'suit them, plus a tip for choosing well from whatever the week’s line-up turns out to be.'
+    ),
+    /* The honesty line, in the place where the promise is made. */
+    el(
+      'p',
+      { class: 'field__hint' },
+      'We can’t see your actual menu — nothing here leaves your phone — so these ' +
+        'are dishes that come around regularly, not this week’s line-up.'
+    )
+  );
+
   /* --- True size --------------------------------------------------------- */
 
   const calibrated = typeof settings.pxPerMm === 'number';
@@ -269,6 +308,7 @@ export function render(ctx) {
       pregnancyCard,
       unitsCard,
       dietCard,
+      mealKitCard,
       sizeCard,
       weeksCard,
       aboutCard

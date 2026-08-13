@@ -332,7 +332,14 @@ export function render(ctx) {
 
     cards.push(proseCard('Your baby this week', content.baby));
     cards.push(proseCard('Your body', content.body));
-    cards.push(menuCard({ nutrition: content.nutrition, dietTags: ctx.settings.dietTags }));
+    cards.push(
+      menuCard({
+        nutrition: content.nutrition,
+        dietTags: ctx.settings.dietTags,
+        week,
+        mealKit: ctx.settings.mealKit
+      })
+    );
     cards.push(
       todosCard({
         todos: content.todos,

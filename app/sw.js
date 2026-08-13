@@ -20,7 +20,7 @@
  * test/content.test.mjs — so shipping a new version cannot silently reuse the
  * old cache.
  */
-const CACHE_VERSION = '0.1.0';
+const CACHE_VERSION = '0.2.0';
 
 const CACHE_NAME = `little-one-v${CACHE_VERSION}`;
 
@@ -43,6 +43,7 @@ const PRECACHE = [
   './js/lib/sheetDrag.js',
   './js/data/sizes.js',
   './js/data/guide.js',
+  './js/data/mealKits.js',
   './js/data/weeks/index.js',
   './js/data/weeks/weeks04to12.js',
   './js/data/weeks/weeks13to20.js',
@@ -61,6 +62,7 @@ const PRECACHE = [
   './js/components/today/edge.js',
   './js/components/today/header.js',
   './js/components/today/icons.js',
+  './js/components/today/mealKit.js',
   './js/components/today/nutrition.js',
   './js/components/today/prose.js',
   './js/components/today/redFlags.js',

@@ -44,14 +44,36 @@
  */
 
 /**
+ * Which meal-kit service the family subscribes to, or `null` for none.
+ * Only ever set by the user, in Settings.
+ * @typedef {'hellofresh'|null} MealKit
+ */
+
+/**
+ * A nutrition angle a meal-kit dish can serve.
+ * @typedef {'iron'|'dha'|'choline'|'calcium'|'folate'|'fiber'|'protein'|'comfort'} MealKitTag
+ */
+
+/**
+ * One dish in the meal-kit catalog (`data/mealKits.js`).
+ * `gives` is one warm line about what the plate delivers. `safety` is the
+ * pregnancy tweak this dish needs, or `null`/absent when it needs none.
+ * `dietTags` is present only where the dish as described honestly qualifies.
+ * @typedef {{ id: string, name: string, gives: string, tags: MealKitTag[],
+ *   dietTags?: DietTag[], safety?: string|null }} MealKitDish
+ */
+
+/**
  * Persisted app state. localStorage key: `little-one:v1`.
  * `pxPerMm: null` means "not calibrated" — use `DEFAULT_PX_PER_MM`.
  * `todosDone` maps a todo id to whether it is checked off.
+ * `mealKit` is an additive v1 field: `loadSettings` merges the `null` default
+ * into records written before it existed, so no version bump is needed.
  * `version` is `SCHEMA_VERSION` for anything this build writes; a record left
  * by a newer build keeps its own higher number rather than being downgraded.
  * @typedef {{ version: number, dueDateISO: string|null, nickname: string,
  *   units: UnitSystem, dietTags: DietTag[], pxPerMm: number|null,
- *   todosDone: Object<string, boolean> }} Settings
+ *   mealKit: MealKit, todosDone: Object<string, boolean> }} Settings
  */
 
 /**

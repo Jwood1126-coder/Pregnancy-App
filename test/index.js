@@ -8,14 +8,14 @@
  * `index.js`, so importing every suite from here makes the gate command work
  * exactly as the plan specifies.
  *
- * Both of these therefore run the same 4 suites:
+ * Both of these therefore run the same 5 suites:
  *
  * ```sh
  * node --test test/            # via this file
  * node --test "test/*.test.mjs"   # directly (what `npm test` runs)
  * ```
  *
- * (A bare `node --test` from the repo root discovers this file *and* the four
+ * (A bare `node --test` from the repo root discovers this file *and* the five
  * suites, so it reports every test twice — harmless, but prefer either command
  * above.)
  *
@@ -26,3 +26,4 @@ import './weekMath.test.mjs';
 import './scale.test.mjs';
 import './units.test.mjs';
 import './content.test.mjs';
+import './mealkits.test.mjs';

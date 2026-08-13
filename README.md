@@ -7,6 +7,7 @@ A private, iPhone-first pregnancy companion for our family — week-by-week guid
 **Phase 1 is built.** The week engine, Today screen, true-size Size screen with calibration, the Guide, Settings, the PWA shell, and all 39 weeks of content (weeks 4–42) ship in [`app/`](./app). The product spec lives in [`MASTER_PROMPT.md`](./MASTER_PROMPT.md) and the engineering plan in [`docs/PLAN.md`](./docs/PLAN.md).
 
 - **Guide** — what your baby is building this week and the one food or habit move that helps, each graded for how solid the evidence actually is.
+- **HelloFresh picks (optional)** — switch on "We get HelloFresh" in Settings and the week's food card adds two or three dishes that come around on HelloFresh menus regularly and suit that week's nutrient, plus a tip for choosing well from whatever the menu turns out to be. The app is offline and can't see your actual menu, and it never pretends to.
 
 ## Run it
 

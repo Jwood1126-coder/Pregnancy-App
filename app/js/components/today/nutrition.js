@@ -11,10 +11,12 @@
 import { el } from '../../lib/dom.js';
 import { card } from '../card.js';
 import { leafIcon } from './icons.js';
+import { mealKitSection } from './mealKit.js';
 
 /** @typedef {import('../../lib/types.js').Nutrition} Nutrition */
 /** @typedef {import('../../lib/types.js').DietTag} DietTag */
 /** @typedef {import('../../lib/types.js').EatIdea} EatIdea */
+/** @typedef {import('../../lib/types.js').MealKit} MealKit */
 
 /** Human labels for the diet tags, for the chips. */
 const DIET_LABELS = /** @type {Object<string, string>} */ ({
@@ -59,7 +61,9 @@ export function orderIdeas(eat, dietTags) {
 
 /**
  * Build the nutrition card.
- * @param {{ nutrition: Nutrition, dietTags: DietTag[] }} options
+ * @param {{ nutrition: Nutrition, dietTags: DietTag[], week?: number,
+ *   mealKit?: MealKit }} options Week and meal kit are only needed for the
+ *   optional meal-kit picks; without them the card renders exactly as before.
  * @returns {HTMLElement|null} `null` when the week has no nutrition block yet.
  */
 export function menuCard(options) {
@@ -105,11 +109,20 @@ export function menuCard(options) {
       )
     : null;
 
+  /* Renders `null` unless the family told Settings they get a meal kit. */
+  const kit = mealKitSection({
+    week: Number(options.week),
+    focus: n.focus,
+    dietTags: options.dietTags,
+    mealKit: options.mealKit ?? null
+  });
+
   return card(
     { title: 'On the menu this week' },
     n.focus ? el('p', { class: 'today-focus' }, n.focus) : null,
     n.why ? el('p', { class: 'today-why' }, n.why) : null,
     list,
-    safety
+    safety,
+    kit
   );
 }

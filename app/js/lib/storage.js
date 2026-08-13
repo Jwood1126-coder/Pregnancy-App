@@ -10,6 +10,7 @@ import { isValidISODate } from './weekMath.js';
 
 /** @typedef {import('./types.js').Settings} Settings */
 /** @typedef {import('./types.js').DietTag} DietTag */
+/** @typedef {import('./types.js').MealKit} MealKit */
 
 /** localStorage key holding the whole settings blob. */
 export const STORAGE_KEY = 'little-one:v1';
@@ -27,8 +28,17 @@ export const DIET_TAGS = /** @type {DietTag[]} */ ([
   'kosher'
 ]);
 
+/** Every meal-kit service the Settings toggle can store. */
+export const MEAL_KITS = /** @type {NonNullable<MealKit>[]} */ (['hellofresh']);
+
 /**
  * A fresh, empty settings object.
+ *
+ * `mealKit` was added after v1 shipped. It needs no version bump because
+ * `sanitize` builds every result from these defaults and only overwrites the
+ * fields it recognises on disk — so a stored v1 blob that predates the field
+ * comes back with `mealKit: null` and everything else intact.
+ *
  * @returns {Settings}
  */
 export function defaultSettings() {
@@ -39,6 +49,7 @@ export function defaultSettings() {
     units: 'us',
     dietTags: [],
     pxPerMm: null,
+    mealKit: null,
     todosDone: {}
   };
 }
@@ -131,6 +142,9 @@ function sanitize(raw) {
   if (typeof raw.pxPerMm === 'number' && Number.isFinite(raw.pxPerMm) && raw.pxPerMm > 0) {
     base.pxPerMm = raw.pxPerMm;
   }
+  /* Anything unrecognised — including a record written before this field
+     existed — leaves the default `null` in place, i.e. no meal kit. */
+  if (MEAL_KITS.includes(raw.mealKit)) base.mealKit = raw.mealKit;
   if (raw.todosDone && typeof raw.todosDone === 'object' && !Array.isArray(raw.todosDone)) {
     /** @type {Object<string, boolean>} */
     const done = {};
