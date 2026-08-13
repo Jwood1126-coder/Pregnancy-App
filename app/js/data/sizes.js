@@ -72,11 +72,17 @@ export const SIZE_TABLE = {
 export const BASIS_SWITCH_WEEK = 20;
 
 /**
- * Friendly note shown at the 19 → 20 transition so the jump reads as a change
- * of ruler, not a growth spurt.
+ * Friendly note shown at the 19 → 20 transition, where two things change at
+ * once: the ruler (so the number jumps without the baby growing overnight) and
+ * what the number describes relative to the picture (the length is now taken
+ * with the legs straightened, while the drawing keeps the curl your baby is
+ * actually in). Both need saying, or the picture looks too small for the stat.
  */
 export const BASIS_SWITCH_NOTE =
-  'From here we measure head to heel — hello, long legs!';
+  'From here the length is head to heel, not head to bottom — that jump is ' +
+  'the ruler changing, not a growth spurt. It’s measured with the legs ' +
+  'straightened out, so the picture stays curled up, the way your baby ' +
+  'really lies.';
 
 /**
  * Footer reminder for the Size view: these are population averages.

@@ -431,7 +431,21 @@ test('the service-worker cache generation tracks the app version', () => {
 
 /* -------------------------------------------------------------- silhouettes */
 
-test('every week resolves to a silhouette, and crown-heel weeks have a heelY', () => {
+/**
+ * The `spanFraction` acceptance bands from docs/PLAN.md § "Curled-pose honesty
+ * rule". Crown-rump stages are measured on the very curl that is drawn, so
+ * their fraction sits at ~1; crown-heel stages quote a *stretched* length that
+ * a curled figure cannot span, and a curled fetus occupies ~66–72% of it.
+ */
+const SPAN_FRACTION_BANDS = {
+  embryo: [0.95, 1.1],
+  early: [0.95, 1.1],
+  mid: [0.6, 0.75],
+  late: [0.6, 0.75],
+  term: [0.6, 0.75]
+};
+
+test('every week resolves to a silhouette covering it', () => {
   for (const w of WEEK_NUMBERS) {
     const sil = silhouetteForWeek(w);
     assert.ok(sil, `week ${w}: no silhouette`);
@@ -439,30 +453,22 @@ test('every week resolves to a silhouette, and crown-heel weeks have a heelY', (
       w >= sil.minWeek && w <= sil.maxWeek,
       `week ${w}: matched silhouette "${sil.id}" covering ${sil.minWeek}–${sil.maxWeek}`
     );
-    assert.ok(sil.rumpY > sil.crownY, `${sil.id}: rumpY must sit below crownY`);
-    assert.ok(typeof sil.path === 'string' && sil.path.length > 0, `${sil.id}: empty path`);
-    assert.ok(sil.viewBox?.w > 0 && sil.viewBox?.h > 0, `${sil.id}: bad viewBox`);
-
-    if (SIZE_TABLE[w].basis === 'crown-heel') {
-      assert.ok(
-        typeof sil.heelY === 'number' && Number.isFinite(sil.heelY),
-        `week ${w} is measured crown-heel but silhouette "${sil.id}" has no heelY`
-      );
-      assert.ok(sil.heelY > sil.rumpY, `${sil.id}: heelY must sit below rumpY`);
-      // Pose honesty: crown→heel must be essentially the whole drawing.
-      assert.ok(
-        sil.heelY - sil.crownY >= 0.9 * sil.viewBox.h,
-        `${sil.id}: crown→heel spans only ${(sil.heelY - sil.crownY).toFixed(1)} of ${sil.viewBox.h} viewBox units — legs are too curled for a crown-heel scale`
-      );
-    }
   }
 });
 
 test('silhouette ranges tile weeks 4–42 without gaps or overlaps', () => {
   const ordered = [...SILHOUETTES].sort((a, b) => a.minWeek - b.minWeek);
   assert.equal(ordered.length, 5, 'PLAN specifies five stage silhouettes');
+  assert.deepEqual(
+    ordered.map((s) => s.id),
+    ['embryo', 'early', 'mid', 'late', 'term'],
+    'stage ids must be the five PLAN stages, in week order'
+  );
   assert.equal(ordered[0].minWeek, MIN_CONTENT_WEEK);
   assert.equal(ordered[ordered.length - 1].maxWeek, MAX_CONTENT_WEEK);
+  for (const s of ordered) {
+    assert.ok(s.maxWeek >= s.minWeek, `${s.id}: empty week range`);
+  }
   for (let i = 1; i < ordered.length; i += 1) {
     assert.equal(
       ordered[i].minWeek,
@@ -472,6 +478,70 @@ test('silhouette ranges tile weeks 4–42 without gaps or overlaps', () => {
   }
   const ids = new Set(ordered.map((s) => s.id));
   assert.equal(ids.size, ordered.length, 'silhouette ids must be unique');
+});
+
+test('silhouette landmarks are ordered and inside the viewBox', () => {
+  for (const sil of SILHOUETTES) {
+    assert.ok(sil.viewBox?.w > 0 && sil.viewBox?.h > 0, `${sil.id}: bad viewBox`);
+    assert.ok(sil.crownY < sil.rumpY, `${sil.id}: crownY must sit above rumpY`);
+    /* `lowestY` is the lowest point of the whole figure, which may be the rump
+       itself (a tucked-in term baby) or a little past it (an embryo's tail, a
+       tucked heel) — never above it, and never outside the box. */
+    assert.ok(sil.crownY < sil.lowestY, `${sil.id}: crownY must sit above lowestY`);
+    assert.ok(
+      sil.lowestY <= sil.viewBox.h,
+      `${sil.id}: lowestY ${sil.lowestY} falls outside a ${sil.viewBox.h}-unit viewBox`
+    );
+    assert.ok(sil.crownY >= 0, `${sil.id}: crownY must sit inside the viewBox`);
+  }
+});
+
+test('spanFraction is honest for each stage', () => {
+  for (const sil of SILHOUETTES) {
+    const band = SPAN_FRACTION_BANDS[sil.id];
+    assert.ok(band, `${sil.id}: no spanFraction band declared for this stage`);
+    const [lo, hi] = band;
+    assert.equal(typeof sil.spanFraction, 'number', `${sil.id}: spanFraction must be a number`);
+    assert.ok(
+      sil.spanFraction >= lo && sil.spanFraction <= hi,
+      `${sil.id}: spanFraction ${sil.spanFraction} outside [${lo}, ${hi}]`
+    );
+  }
+
+  /* The bands are not arbitrary: they follow the measurement basis of the
+     weeks each stage covers. A stage whose weeks are quoted crown-heel
+     (stretched) must be the curled ~0.7 kind, and vice versa. */
+  for (const w of WEEK_NUMBERS) {
+    const sil = silhouetteForWeek(w);
+    const stretched = SIZE_TABLE[w].basis === 'crown-heel';
+    assert.equal(
+      sil.spanFraction < 0.9,
+      stretched,
+      `week ${w} (${SIZE_TABLE[w].basis}) and silhouette "${sil.id}" ` +
+        `(spanFraction ${sil.spanFraction}) disagree about whether the quoted ` +
+        'length is a stretched one'
+    );
+  }
+});
+
+test('every silhouette path is a non-empty closed path', () => {
+  for (const sil of SILHOUETTES) {
+    assert.equal(typeof sil.path, 'string', `${sil.id}: path must be a string`);
+    const d = sil.path.trim();
+    assert.ok(d.length > 0, `${sil.id}: empty path`);
+    assert.ok(d.startsWith('M'), `${sil.id}: path must start with an absolute moveto`);
+    assert.ok(
+      d.endsWith('Z') || d.endsWith('z'),
+      `${sil.id}: path must be closed — it ends "${d.slice(-1)}"`
+    );
+    /* One subpath: a second `M` would be a second shape, and the fill rule,
+       the crown landmark and the ghost outline all assume a single contour. */
+    assert.equal(
+      (d.match(/[Mm]/g) ?? []).length,
+      1,
+      `${sil.id}: path must be a single subpath`
+    );
+  }
 });
 
 /* -------------------------------------------------------------------- guide */

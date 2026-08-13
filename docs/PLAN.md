@@ -83,7 +83,8 @@ export const DEFAULT_PX_PER_MM = 6.0;               // ≈153 CSS px/inch (typic
 export const CREDIT_CARD_MM = { w: 85.6, h: 53.98 }; // ISO/IEC 7810 ID-1
 export function babyPixels(lengthMm, pxPerMm)
 export function fitScale(babyPx, availPx)            // min(1, avail/baby)
-export function silhouetteScale(sil, basis, lengthMm, pxPerMm) // see Silhouette spec
+export function silhouetteScale(sil, lengthMm, pxPerMm)        // see Silhouette spec
+export function silhouetteSpan(sil)                            // lowestY − crownY, viewBox units
 ```
 
 ### `app/js/lib/units.js`
@@ -121,17 +122,23 @@ export function el(tag, attrs = {}, ...children)
 ```js
 /** @typedef {{ id: string, minWeek: number, maxWeek: number,
  *   viewBox: { w: number, h: number },   // arbitrary units
- *   path: string,                        // one closed smooth SVG path, head at top
+ *   path: string,                        // one closed SVG path, head at top ('M' … 'Z')
  *   crownY: number,                      // top of head, viewBox units
  *   rumpY: number,                       // bottom of rump
- *   heelY: number|null }} Silhouette */  // lowest heel; required when covering weeks ≥ 20
-export const SILHOUETTES  // ranges: 4–9, 10–19, 20–27, 28–36, 37–42
+ *   lowestY: number,                      // lowest point of the figure (may equal rumpY)
+ *   spanFraction: number }} Silhouette */ // share of the week's official length that crownY→lowestY is
+export const SILHOUETTES  // ids: embryo, early, mid, late, term — ranges 4–9, 10–19, 20–27, 28–36, 37–42
 export function silhouetteForWeek(week)
 ```
 
-Scaling rule: `span = basis === 'crown-rump' ? rumpY − crownY : heelY − crownY`; `k = (lengthMm × pxPerMm) / span`; render the SVG at `viewBox.w × k` by `viewBox.h × k` CSS px.
+Scaling rule: `span = lowestY − crownY`; `k = (lengthMm × spanFraction × pxPerMm) / span`; render the SVG at `viewBox.w × k` by `viewBox.h × k` CSS px. The measurement basis is **not** a parameter — it is already baked into `spanFraction`.
 
-**Pose honesty rule:** crown-heel length is measured head-to-heel. Silhouettes for weeks ≥ 20 must be drawn with legs extended enough (soft knee bend is fine) that the drawn crown→heel span is essentially the full body — otherwise the scaled render exaggerates true size. Weeks < 20 use crown-rump, so a curled pose is accurate there.
+**Curled-pose honesty rule (replaces the old legs-extended rule).** Every silhouette is drawn in a natural curled fetal pose, because that is how a baby lies; the previous contract forced legs-extended poses from week 20 so `crown → heel` could span the whole drawing, and it made the babies read as standing toddlers. `spanFraction` is what keeps "actual size" true without straightening them: it is the fraction of the week's **official** length that the drawn `crownY → lowestY` span represents.
+
+- Weeks 4–19 are reported **crown-rump**, and crown-rump is measured on exactly this curl, so `spanFraction ≈ 1.0` (shipped: 1.041 embryo, 1.003 early — the drawn span runs a little past the rump, to a tail or a tucked heel). Acceptance band: `[0.95, 1.1]`.
+- Weeks 20+ are reported **crown-heel with the legs stretched**, which no curled drawing can span. A curled fetus really does occupy ~66–72% of its stretched length, so `spanFraction ≈ 0.66–0.71` (shipped: 0.705 mid, 0.70 late, 0.66 term). Acceptance band: `[0.6, 0.75]`.
+
+The result is honest in both directions: the figure on the glass occupies exactly the space the curled baby occupies, and the stretched head-to-heel number stays a **stat** rather than a silhouette. The Size screen must therefore never present the two as the same claim — from week 20 the measurement chip names the pose ahead of the number — `"curled up · 20.2 in head to heel"`, one nowrap part so it always renders on a single line and the band under the picture stays exactly two lines tall (the fuller `"… when stretched"` wording took a second line of its own, pushing the band to three lines on 46 of the 78 week/unit combinations and walking the picture and the scrubber ~20 px between weeks) — and the week 19 → 20 note (`BASIS_SWITCH_NOTE`) explains both changes at once: the ruler switches to head-to-heel, *and* the pose shows the baby curled as they really are.
 
 ### App composition (`app/js/main.js`)
 
@@ -201,7 +208,7 @@ Nutrition focuses follow the trimester arcs in Appendix A; vary focuses across a
 ## Validation gates (integrator; all must pass)
 
 1. `scripts/check.sh`: `node --check` on every `.js`/`.mjs` file in `app/`, `scripts/`, `test/` — clean.
-2. `node --test test/` green, including `test/content.test.mjs` (written by integrator) asserting (note: this Node treats a path argument as a file pattern and will not walk a directory, so `test/index.js` imports every suite — that is what makes the gate command work; `node --test "test/*.test.mjs"` runs the same suites directly): weeks 4–42 present exactly once across chunks; `baby.length` 2–4 and `body.length` 1–3 with non-empty strings; `eat.length` 4–6; every `safety` exactly matches the rotation formula; all mandatory todo ids present in their weeks; todo ids globally unique and `w{week}-` prefixed; no prose paragraph contains a digit immediately followed by ` in`, ` cm`, ` oz`, ` lb`, ` g` (crude size-leak check); banned phrases absent ("guaranteed", "perfectly safe", "never worry"); `SIZE_TABLE` has all weeks 4–42 and matches Appendix B spot-checks (w17 = 130 CR 140 g, w20 = 256 CH 300 g, w40 = 512 CH 3460 g); every week's silhouette lookup succeeds and CH-covering silhouettes have non-null `heelY`.
+2. `node --test test/` green, including `test/content.test.mjs` (written by integrator) asserting (note: this Node treats a path argument as a file pattern and will not walk a directory, so `test/index.js` imports every suite — that is what makes the gate command work; `node --test "test/*.test.mjs"` runs the same suites directly): weeks 4–42 present exactly once across chunks; `baby.length` 2–4 and `body.length` 1–3 with non-empty strings; `eat.length` 4–6; every `safety` exactly matches the rotation formula; all mandatory todo ids present in their weeks; todo ids globally unique and `w{week}-` prefixed; no prose paragraph contains a digit immediately followed by ` in`, ` cm`, ` oz`, ` lb`, ` g` (crude size-leak check); banned phrases absent ("guaranteed", "perfectly safe", "never worry"); `SIZE_TABLE` has all weeks 4–42 and matches Appendix B spot-checks (w17 = 130 CR 140 g, w20 = 256 CH 300 g, w40 = 512 CH 3460 g); every week's silhouette lookup succeeds; the five stages tile 4–42 with no gaps or overlaps; `crownY < rumpY`, `crownY < lowestY ≤ viewBox.h`; `spanFraction` inside `[0.95, 1.1]` for embryo/early and `[0.6, 0.75]` for mid/late/term; every `path` is a non-empty closed path string (starts `M`, ends `Z`/`z`).
 3. Serve smoke test: `node scripts/serve.mjs` responds 200 on `/` and on `/js/main.js` with correct MIME (`text/javascript` for `.js`, required for ES modules).
 
 ## Demo spec (screenshot agent)

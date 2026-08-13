@@ -79,55 +79,58 @@ export function scalePercent(scale) {
 }
 
 /**
- * Scale factor to apply to a silhouette's `viewBox` so its measured span renders
- * at true physical size.
+ * Scale factor to apply to a silhouette's `viewBox` so the drawing occupies
+ * exactly the space the real, curled baby occupies.
  *
- * `span = basis === 'crown-rump' ? rumpY − crownY : heelY − crownY`
- * `k = (lengthMm × pxPerMm) / span`
+ * ```
+ * span = lowestY − crownY                            // drawn, viewBox units
+ * k    = (lengthMm × spanFraction × pxPerMm) / span
+ * ```
  *
  * Render the SVG at `viewBox.w × k` by `viewBox.h × k` CSS pixels.
  *
- * If a crown-heel measurement is requested but the silhouette has no `heelY`,
- * this returns 0 rather than guessing. Substituting the crown-rump span would
- * *inflate* `k` (a smaller span for the same millimetres), drawing a baby much
- * longer than life — so the honest answer is to draw nothing and let the caller
- * hide the layer.
+ * The `spanFraction` factor is the whole honesty story. Every silhouette is
+ * drawn curled, because that is how a baby lies; but from week 20 the official
+ * length is crown-to-heel with the legs *stretched*, which a curled figure
+ * cannot span. Scaling the curl to the stretched number would draw a baby far
+ * bigger than life. `spanFraction` says what share of that official length the
+ * drawn span really is (~1.0 for the crown-rump weeks, ~0.66–0.71 for the
+ * curled crown-heel weeks), so the figure on the glass is the room the baby
+ * takes up, and the stretched head-to-heel number stays a stat rather than a
+ * silhouette.
+ *
+ * The measurement basis is therefore no longer a parameter: it is already baked
+ * into the art's own `spanFraction`.
  *
  * @param {import('./types.js').Silhouette} sil The silhouette being drawn.
- * @param {import('./types.js').LengthBasis} basis Which span the length measures.
- * @param {number} lengthMm The week's measured length in millimetres.
+ * @param {number} lengthMm The week's official length in millimetres.
  * @param {number} [pxPerMm] Device density; defaults to {@link DEFAULT_PX_PER_MM}.
  * @returns {number} The viewBox-unit → CSS-pixel factor `k` (0 when unusable).
  */
-export function silhouetteScale(sil, basis, lengthMm, pxPerMm = DEFAULT_PX_PER_MM) {
-  const span = silhouetteSpan(sil, basis);
+export function silhouetteScale(sil, lengthMm, pxPerMm = DEFAULT_PX_PER_MM) {
+  const span = silhouetteSpan(sil);
   const px = babyPixels(lengthMm, pxPerMm);
   if (span <= 0 || px <= 0) return 0;
-  return px / span;
+  const fraction = sil.spanFraction;
+  if (!Number.isFinite(fraction) || fraction <= 0) return 0;
+  return (px * fraction) / span;
 }
 
 /**
- * The drawn span (in viewBox units) that corresponds to a measurement basis.
+ * The span the art actually draws, in viewBox units: crown to the lowest point
+ * of the figure.
  *
- * A crown-heel request against art with no usable `heelY` yields 0: there is no
- * safe substitute, because every other span in the drawing is shorter and would
- * scale the figure up. Callers treat 0 as "no honest render" and hide the layer.
+ * This is a fact about the drawing alone — what it pairs with in millimetres is
+ * `lengthMm × spanFraction`, not `lengthMm`. Unusable art yields 0, which
+ * callers treat as "no honest render" and hide the layer.
  *
  * @param {import('./types.js').Silhouette} sil
- * @param {import('./types.js').LengthBasis} basis
  * @returns {number} Span in viewBox units (0 when the silhouette is unusable).
  */
-export function silhouetteSpan(sil, basis) {
+export function silhouetteSpan(sil) {
   if (!sil) return 0;
-  const rumpSpan = sil.rumpY - sil.crownY;
-  if (basis === 'crown-heel') {
-    const heel = sil.heelY;
-    if (typeof heel === 'number' && Number.isFinite(heel) && heel > sil.crownY) {
-      return heel - sil.crownY;
-    }
-    return 0;
-  }
-  return rumpSpan > 0 ? rumpSpan : 0;
+  const span = sil.lowestY - sil.crownY;
+  return Number.isFinite(span) && span > 0 ? span : 0;
 }
 
 /**

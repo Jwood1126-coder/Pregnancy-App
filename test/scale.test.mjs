@@ -16,21 +16,42 @@ import {
   pxPerMmFromCardWidth,
   cardWidthFromPxPerMm
 } from '../app/js/lib/scale.js';
+import { SILHOUETTES } from '../app/js/features/size/silhouettes.js';
 
-/** A stand-in silhouette with the same proportions as the shipped placeholder. */
-const SIL = {
-  id: 'test',
+/**
+ * A stand-in for a crown-rump stage: the drawn span *is* the quoted length, so
+ * `spanFraction` is 1 and round numbers stay round.
+ */
+const SIL_CR = {
+  id: 'test-cr',
   minWeek: 4,
-  maxWeek: 42,
-  viewBox: { w: 96, h: 146 },
-  path: 'M0 0',
+  maxWeek: 19,
+  viewBox: { w: 96, h: 150 },
+  path: 'M0 0 Z',
   crownY: 6,
-  rumpY: 100,
-  heelY: 140
+  rumpY: 140,
+  lowestY: 146,
+  spanFraction: 1
 };
 
-/** Same shape with no heel marked — art that only supports crown-rump. */
-const SIL_NO_HEEL = { ...SIL, heelY: null };
+/**
+ * A stand-in for a curled crown-heel stage: the quoted length is taken with the
+ * legs stretched, and the curl occupies 0.7 of it.
+ */
+const SIL_CURLED = {
+  id: 'test-curled',
+  minWeek: 20,
+  maxWeek: 42,
+  viewBox: { w: 100, h: 150 },
+  path: 'M0 0 Z',
+  crownY: 6,
+  rumpY: 146,
+  lowestY: 146,
+  spanFraction: 0.7
+};
+
+/** The real term silhouette, so the shipped numbers are under test too. */
+const TERM = SILHOUETTES.find((s) => s.id === 'term');
 
 test('constants match the spec', () => {
   assert.equal(DEFAULT_PX_PER_MM, 6.0);
@@ -90,35 +111,69 @@ test('scalePercent stays inside 1–100', () => {
   assert.equal(scalePercent(2), 100);
 });
 
-test('silhouetteSpan picks the drawn span that matches the measurement', () => {
-  assert.equal(silhouetteSpan(SIL, 'crown-rump'), 94);
-  assert.equal(silhouetteSpan(SIL, 'crown-heel'), 134);
-  // Art without a heel refuses the crown-heel request rather than substituting
-  // the shorter crown-rump span, which would draw the baby ~57% too long.
-  assert.equal(silhouetteSpan(SIL_NO_HEEL, 'crown-heel'), 0);
-  // The crown-rump basis still works on the same art.
-  assert.equal(silhouetteSpan(SIL_NO_HEEL, 'crown-rump'), 94);
-  assert.equal(silhouetteSpan(null, 'crown-rump'), 0);
+test('silhouetteSpan measures what the art actually draws', () => {
+  // Crown to the lowest point of the figure — not to the rump.
+  assert.equal(silhouetteSpan(SIL_CR), 140);
+  assert.equal(silhouetteSpan(SIL_CURLED), 140);
+  assert.equal(silhouetteSpan(null), 0);
+  assert.equal(silhouetteSpan({ ...SIL_CR, lowestY: 6 }), 0);
+  assert.equal(silhouetteSpan({ ...SIL_CR, lowestY: Number.NaN }), 0);
 });
 
-test('silhouetteScale maps the drawing onto true physical size', () => {
-  // Week 17: 130 mm crown-rump over a 94-unit span at 6 px/mm.
-  const k17 = silhouetteScale(SIL, 'crown-rump', 130, 6);
-  assert.equal(k17, 780 / 94);
-  // The drawn crown→rump distance now measures exactly the true length.
-  assert.ok(Math.abs((SIL.rumpY - SIL.crownY) * k17 - 780) < 1e-9);
+test('silhouetteScale renders a crown-rump stage at its quoted length', () => {
+  // Week 17: 130 mm crown-rump, spanFraction 1, over a 140-unit drawn span at
+  // 6 px/mm → 780 px of baby spread across 140 units.
+  const k17 = silhouetteScale(SIL_CR, 130, 6);
+  assert.equal(k17, 780 / 140);
+  // The drawn span measures exactly the quoted length: nothing is discounted.
+  assert.ok(Math.abs(silhouetteSpan(SIL_CR) * k17 - 780) < 1e-9);
+  // The default density is the uncalibrated fallback.
+  assert.equal(silhouetteScale(SIL_CR, 130), 780 / 140);
+});
 
-  // Week 20: 256 mm crown-heel over a 134-unit span.
-  const k20 = silhouetteScale(SIL, 'crown-heel', 256, 6);
-  assert.equal(k20, 1536 / 134);
-  assert.ok(Math.abs((SIL.heelY - SIL.crownY) * k20 - 1536) < 1e-9);
+test('silhouetteScale draws a curled stage at the space the curl occupies', () => {
+  // Week 20: 256 mm quoted head-to-heel *stretched*; the curl is 0.7 of that,
+  // so 256 × 0.7 × 6 = 1075.2 px of drawing across a 140-unit span.
+  const k20 = silhouetteScale(SIL_CURLED, 256, 6);
+  assert.ok(Math.abs(k20 - 1075.2 / 140) < 1e-12);
+  assert.ok(Math.abs(silhouetteSpan(SIL_CURLED) * k20 - 1075.2) < 1e-9);
+  // …and emphatically NOT the full stretched 1536 px: scaling the curl to the
+  // stretched number is the exaggeration this contract exists to prevent.
+  assert.ok(silhouetteSpan(SIL_CURLED) * k20 < 1536);
 
-  // Missing heel data gives 0 (caller hides the figure) instead of exaggerating.
-  assert.equal(silhouetteScale(SIL_NO_HEEL, 'crown-heel', 256, 6), 0);
+  // Week 40 on the shipped term art: 512 mm × 0.66 × 6 px/mm = 2027.52 px
+  // over its own drawn span (lowestY − crownY = 594.6 − 8 = 586.6 units).
+  assert.equal(TERM.spanFraction, 0.66);
+  assert.ok(Math.abs(silhouetteSpan(TERM) - 586.6) < 1e-9);
+  const k40 = silhouetteScale(TERM, 512, 6);
+  assert.ok(Math.abs(k40 - (512 * 0.66 * 6) / 586.6) < 1e-12);
+  assert.ok(Math.abs(silhouetteSpan(TERM) * k40 - 2027.52) < 1e-9);
+  // 66% of the stretched 3072 px, to the millimetre.
+  assert.ok(Math.abs(silhouetteSpan(TERM) * k40 - 0.66 * babyPixels(512, 6)) < 1e-9);
+});
 
-  // Unusable inputs give 0, never NaN or Infinity.
-  assert.equal(silhouetteScale(SIL, 'crown-rump', 0, 6), 0);
-  assert.equal(silhouetteScale({ ...SIL, crownY: 10, rumpY: 10 }, 'crown-rump', 130, 6), 0);
+test('silhouetteScale refuses unusable input instead of guessing', () => {
+  // Never NaN, never Infinity — 0 means "no honest render", and the caller
+  // hides the layer.
+  assert.equal(silhouetteScale(SIL_CR, 0, 6), 0);
+  assert.equal(silhouetteScale(SIL_CR, -5, 6), 0);
+  assert.equal(silhouetteScale(SIL_CR, 130, 0), 0);
+  assert.equal(silhouetteScale(null, 130, 6), 0);
+  // A degenerate drawn span.
+  assert.equal(silhouetteScale({ ...SIL_CR, lowestY: 6 }, 130, 6), 0);
+  // A missing or nonsensical spanFraction is not silently treated as 1: that
+  // would draw a curled baby at its full stretched length.
+  assert.equal(silhouetteScale({ ...SIL_CURLED, spanFraction: undefined }, 256, 6), 0);
+  assert.equal(silhouetteScale({ ...SIL_CURLED, spanFraction: 0 }, 256, 6), 0);
+  assert.equal(silhouetteScale({ ...SIL_CURLED, spanFraction: -0.7 }, 256, 6), 0);
+  assert.equal(silhouetteScale({ ...SIL_CURLED, spanFraction: Number.NaN }, 256, 6), 0);
+});
+
+test('every shipped silhouette scales to a finite, positive factor', () => {
+  for (const sil of SILHOUETTES) {
+    const k = silhouetteScale(sil, 100, 6);
+    assert.ok(Number.isFinite(k) && k > 0, `${sil.id}: unusable scale ${k}`);
+  }
 });
 
 test('calibration converts between card width and density', () => {

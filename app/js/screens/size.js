@@ -8,6 +8,13 @@
  *   silhouetteScale(...)           →  viewBox units → CSS pixels for the art
  *   fitScale(...)                  →  the honest shrink when it no longer fits
  *
+ * The art is curled at every stage, because that is how a baby lies. From week
+ * 20 the quoted length is crown-to-heel with the legs *stretched*, so the two
+ * no longer describe the same thing — `silhouetteScale` reconciles them with
+ * the silhouette's own `spanFraction`, the stat line leads with "curled up" so
+ * the picture is never read as the number, and the week 19 → 20 note spells
+ * the change of ruler out in full on the week it starts mattering.
+ *
  * with `pxPerMm` coming from the user's calibration when they've done it and
  * from `DEFAULT_PX_PER_MM` when they haven't. Everything the screen draws comes
  * from `SIZE_TABLE` and the silhouette contract, so it renders completely even
@@ -76,8 +83,55 @@ export const CALIBRATE_ACTION = 'Make it exact';
 /** …and when a calibration exists but rested on a slider endpoint. */
 export const RECALIBRATE_ACTION = 'Try again';
 
+/**
+ * What the bottom of the drawing is, at every stage.
+ *
+ * Every silhouette is curled, so the lowest drawn point is the baby's bottom —
+ * never a heel, even in the weeks the *number* is measured to one. Life-size
+ * mode scrolls the drawing, so its marks name the drawing.
+ */
+export const LIFE_FOOT_MARK = 'bottom';
+
+/** @see LIFE_FOOT_MARK */
+export const LIFE_SCROLL_SPAN = 'head to bottom';
+
+/**
+ * Said of the curled weeks, ahead of the number — one more fact on a line of
+ * facts, in the line's own voice.
+ *
+ * It is deliberately short. "curled up — head to heel 20.2 in when stretched"
+ * was two lines of measurement on its own, which pushed the whole stat band to
+ * three lines on 46 of the 78 week/unit combinations and walked the picture,
+ * the chips and the scrubber ~20 px up and down between weeks. The nuance it
+ * carried — that the number is taken with the legs straight — is the week
+ * 19 → 20 note's job (`BASIS_SWITCH_NOTE` says it in full, on the week it
+ * starts mattering), and life-size mode says the rest: "scroll head to bottom".
+ */
+export const CURLED_LEAD = 'curled up';
+
+/**
+ * The separator between facts on the stat line: a non-breaking space, the dot,
+ * then an ordinary space. The dot therefore always ends a wrapped line and
+ * never starts one — "· a cantaloupe 🍈" alone under the picture read as a
+ * bullet list of one.
+ */
+const FACT_SEP = ' · ';
+
 /** Smallest stage we will ever ask for, in CSS px. */
 const MIN_AVAILABLE_PX = 140;
+
+/**
+ * The band the honesty badge owns at the top of the stage, in CSS px: its own
+ * `top` offset, one line of badge, and air under it. The picture starts below
+ * it, so the opaque pill never sits on the baby's head.
+ */
+const TOP_RESERVE_PX = 48;
+
+/** @see TOP_RESERVE_PX — `.size-stage__top`'s `top`. */
+const BADGE_TOP_PX = 8;
+
+/** @see TOP_RESERVE_PX — air between the badge and the crown. */
+const BADGE_GAP_PX = 6;
 
 /** How long the "there you go" reveal holds the badge after calibrating, in ms. */
 const REVEAL_MS = 3500;
@@ -266,6 +320,15 @@ button.size-fit:active { transform: scale(0.98); transition-duration: 60ms; }
   align-items: center;
   justify-content: center;
   overscroll-behavior: contain;
+  /* The badge floats over the top of the stage, and this band is what keeps it
+     floating over *empty* space. Every silhouette is curled now, so the crown
+     is a whole round head rather than the tip of an extended body, and from
+     about week 15 the figure fills the stage top to bottom — an opaque pill
+     laid across that head reads as a drawing with its skull sliced off. The
+     reserve is measured from the badge itself and published as the
+     --top-reserve custom property, so a badge that wraps to two lines takes
+     the room it needs. */
+  padding-top: var(--top-reserve, 48px);
 }
 
 .size-stage--life .size-scroller {
@@ -425,8 +488,10 @@ button.size-fit:active { transform: scale(0.98); transition-duration: 60ms; }
   pointer-events: none;
 }
 
-/* Clear of the honesty badge, which owns the top of the stage. */
-.size-life-mark--head { top: 62px; }
+/* Clear of the honesty badge, which owns the top of the stage — the same
+   reserved band the picture starts below, so the mark sits on the crown line
+   rather than at a hard-coded guess at the badge's height. */
+.size-life-mark--head { top: calc(var(--top-reserve, 48px) + 14px); }
 .size-life-mark--foot { bottom: calc(var(--foot-h, 96px) + 12px); }
 .size-life-mark[hidden] { display: none; }
 
@@ -435,7 +500,7 @@ button.size-fit:active { transform: scale(0.98); transition-duration: 60ms; }
 .size-life-rail {
   position: absolute;
   right: 8px;
-  top: 62px;
+  top: calc(var(--top-reserve, 48px) + 14px);
   bottom: calc(var(--foot-h, 96px) + 12px);
   z-index: 2;
   width: 3px;
@@ -681,7 +746,13 @@ export function render(ctx) {
   /* The ghost draws *after* the fill, so last week's contour sits on top of
      this week rather than being buried under it. */
   const headMark = el('span', { class: 'size-life-mark size-life-mark--head', hidden: true }, 'head');
-  const footMark = el('span', { class: 'size-life-mark size-life-mark--foot', hidden: true }, '');
+  /* Constant now: the figure is curled at every stage, so the bottom of the
+     drawing is the baby's bottom in every week. */
+  const footMark = el(
+    'span',
+    { class: 'size-life-mark size-life-mark--foot', hidden: true },
+    LIFE_FOOT_MARK
+  );
   const railThumb = el('span', { class: 'size-life-rail__thumb' });
   const rail = /** @type {HTMLElement} */ (
     el('div', { class: 'size-life-rail', hidden: true, 'aria-hidden': 'true' }, railThumb)
@@ -694,15 +765,23 @@ export function render(ctx) {
   /* Three facts, three nowrap spans, so the line can only ever break at a
      separator — never inside "7 lb 10 oz" or "a small pumpkin 🎃". */
   const statLine = el('p', { class: 'size-line' });
-  const lenChunk = el('span', { class: 'size-line__part' }, '');
+  /* The length is the one fact whose wording changes with the stage, so it is
+     a plain wrapper holding one or three nowrap parts rather than a nowrap
+     span itself — "curled up — head to heel 20.2 in when stretched" has to be
+     allowed to break, and only between its parts. */
+  const lenChunk = el('span', {}, '');
   const wtChunk = el('span', { class: 'size-line__part' }, '');
   const cmpChunk = el('span', { class: 'size-line__part' }, '');
   /* The separators sit *between* the spans, not inside them: a space locked
      inside a nowrap span is not a break opportunity, and the line would then
-     have none at all and run off under the Life-size chip. */
+     have none at all and run off under the Life-size chip. Each separator is
+     NBSP + "·" + a plain space, so the only break it offers is the one *after*
+     the dot: a wrapped line ends "1 lb 5 oz ·" and the next starts with the
+     next fact. Breaking on the space in front instead left "· a cantaloupe 🍈"
+     hanging under the picture, which reads as a bullet list of one. */
   const cmpSep = el('span', {}, '');
   const compareLine = el('span', { class: 'size-line__sub' }, '');
-  statLine.append(lenChunk, ' · ', wtChunk, cmpSep, cmpChunk, compareLine);
+  statLine.append(lenChunk, FACT_SEP, wtChunk, cmpSep, cmpChunk, compareLine);
 
   const lifeBtn = /** @type {HTMLElement} */ (
     el(
@@ -794,13 +873,19 @@ export function render(ctx) {
    * renders — safe-area padding and all. Everything below the stage (the ruler
    * note, the footer) is allowed to fall below the fold, because the picture is
    * what the screen is for.
-   * @returns {{ availH: number, availW: number, frameY: number }} CSS pixels.
+   * @returns {{ availH: number, availW: number, frameY: number, topReserve: number }}
+   *   CSS pixels.
    */
   function measureAvailable() {
     const view = window.visualViewport;
     const viewportH = (view && view.height) || window.innerHeight || 0;
     if (!viewportH || !screen.isConnected) {
-      return { availH: MIN_AVAILABLE_PX, availW: MIN_AVAILABLE_PX, frameY: 0 };
+      return {
+        availH: MIN_AVAILABLE_PX,
+        availW: MIN_AVAILABLE_PX,
+        frameY: 0,
+        topReserve: TOP_RESERVE_PX
+      };
     }
 
     const main = screen.parentElement;
@@ -832,12 +917,13 @@ export function render(ctx) {
     const stagePadY = num(stageStyle.paddingTop) + num(stageStyle.paddingBottom);
     const stagePadX = num(stageStyle.paddingLeft) + num(stageStyle.paddingRight);
     const stageBorderY = num(stageStyle.borderTopWidth) + num(stageStyle.borderBottomWidth);
-    /* The badge is overlaid, so it is no longer frame — it costs the picture
-       nothing. The bottom band is reserved in full: the figure used to be
-       allowed to bleed 24 px into a 23 px fade, which erased the heel exactly
-       where the stat line claims to measure it. */
+    /* Both bands the picture may not enter are reserved in full. The bottom
+       one because the figure used to bleed 24 px into a 23 px fade, erasing the
+       lowest point exactly where the stat line claims to measure it; the top
+       one because the badge is opaque and the crown is now a whole head. */
     const footH = foot.getBoundingClientRect().height;
-    const frame = stagePadY + stageBorderY + footH;
+    const topReserve = topReserveFor();
+    const frame = stagePadY + stageBorderY + footH + topReserve;
 
     const availH = Math.max(
       MIN_AVAILABLE_PX,
@@ -845,7 +931,21 @@ export function render(ctx) {
     );
     const availW = Math.max(MIN_AVAILABLE_PX, stage.clientWidth - stagePadX);
     stage.style.setProperty('--foot-h', `${Math.round(footH)}px`);
-    return { availH, availW, frameY: frame };
+    stage.style.setProperty('--top-reserve', `${Math.round(topReserve)}px`);
+    return { availH, availW, frameY: frame, topReserve };
+  }
+
+  /**
+   * The band at the top of the stage the picture may not enter: the badge's own
+   * offset, the badge, and a little air under it. Measured rather than assumed,
+   * because the badge wraps to two lines for the longest sentences it carries
+   * ("There you go — this is <nickname>, actual size.").
+   * @returns {number} CSS pixels.
+   */
+  function topReserveFor() {
+    const badgeH = fitBar.getBoundingClientRect().height;
+    if (!(badgeH > 0)) return TOP_RESERVE_PX;
+    return Math.max(TOP_RESERVE_PX, BADGE_TOP_PX + badgeH + BADGE_GAP_PX);
   }
 
   /* --- Painting ---------------------------------------------------------- */
@@ -864,13 +964,53 @@ export function render(ctx) {
        default" signal, and `effectivePxPerMm` rejects it rather than trusting
        it — while a genuinely calibrated 5.87 is used exactly as stored. */
     const pxPerMm = effectivePxPerMm(ctx.settings.pxPerMm);
-    const k = silhouetteScale(sil, row.basis, row.lengthMm, pxPerMm);
+    /* The basis is not passed: the art carries its own `spanFraction`, so a
+       curled figure scaled against a stretched crown-heel number still lands
+       at the size the curled baby really is. */
+    const k = silhouetteScale(sil, row.lengthMm, pxPerMm);
     if (!(k > 0)) return null;
     return {
       sil,
       k,
       bodyH: (sil.viewBox.h - sil.crownY) * k,
       width: sil.viewBox.w * k
+    };
+  }
+
+  /**
+   * The nested growth ring: **this week's own drawing**, shrunk to exactly the
+   * size the earlier week's baby really was.
+   *
+   * The size is the earlier week's to the pixel — `bodyH` is scaled by the ratio
+   * of the two weeks' true drawn heights, each computed from its own art — but
+   * the *shape* is this week's, and that is what makes the ring read as a ring.
+   * Nesting the earlier week's own art works only while both weeks share a
+   * stage: across a stage boundary the two drawings disagree about pose (the
+   * term baby is canted 9° and nods further than the late one), so the smaller
+   * outline crosses the bigger figure in half a dozen places and reads as a
+   * misregistered double exposure rather than as growth. Measured on the
+   * shipped art: an earlier week's own outline stays inside the current figure
+   * for only 77–82% of its length across the 19 → 20 and 36 → 37 boundaries,
+   * against 84–93% — a rim that runs parallel — when the shape is shared.
+   *
+   * Nothing is overstated by this: the ring is a size comparison, the caption
+   * says so ("week 19 traces along inside"), and one stage's drawing already
+   * stands in for eight to ten weeks of babies.
+   * @param {number} week The week being drawn.
+   * @param {number} earlier The week the ring is measuring.
+   * @returns {{ sil: Silhouette, k: number, bodyH: number, width: number }|null}
+   */
+  function ghostLayerFor(week, earlier) {
+    const now = layerFor(week);
+    const then = layerFor(earlier);
+    if (!now || !then) return null;
+    const ratio = then.bodyH / now.bodyH;
+    if (!(ratio > 0)) return null;
+    return {
+      sil: now.sil,
+      k: now.k * ratio,
+      bodyH: now.bodyH * ratio,
+      width: now.width * ratio
     };
   }
 
@@ -907,9 +1047,9 @@ export function render(ctx) {
     const fruit =
       withArticle(row.comparison.name) +
       (row.comparison.emoji ? ` ${row.comparison.emoji}` : '');
-    lenChunk.textContent = `${formatLength(row.lengthMm, units)} ${basisLabel(row.basis)}`;
+    paintLength(row, units);
     wtChunk.textContent = formatWeight(row.weightG, units);
-    cmpSep.textContent = nickname ? '' : ' · ';
+    cmpSep.textContent = nickname ? '' : FACT_SEP;
     cmpChunk.textContent = nickname ? '' : fruit;
     /* The Size tab is the screen a grandparent gets shown — it should know the
        baby's name too. That sentence earns a second line; without a nickname
@@ -918,8 +1058,6 @@ export function render(ctx) {
       ? `${nickname} is about the size of ${fruit}`
       : '';
     compareLine.hidden = !nickname;
-
-    footMark.textContent = row.basis === 'crown-heel' ? 'heel' : 'bottom';
 
     /* The change of ruler at week 20 needs explaining exactly when it bites:
        on week 20 itself, and on any jump that crosses the boundary. */
@@ -931,13 +1069,13 @@ export function render(ctx) {
 
     nowLayer = layerFor(week);
     /* The ghost is a growth comparison, so it is only drawn when it compares
-       something: same stage art, same ruler, and visibly smaller. Week over
-       week that stops being true after about week 24 (w39 → w40 is one per
-       cent), so the screen walks back to the nearest week that qualifies and
-       the caption names it. When nothing qualifies there is no ghost and no
-       clause — that silence is the treatment, not an omission. */
+       something: an earlier week whose *drawn* figure is visibly smaller. Week
+       over week that stops being true after about week 24 (w39 → w40 is one
+       per cent), so the screen walks back to the nearest week that qualifies
+       and the caption names it. When nothing qualifies there is no ghost and
+       no clause — that silence is the treatment, not an omission. */
     ghostWeek = ghostWeekFor(week);
-    ghostLayer = ghostWeek === null ? null : layerFor(ghostWeek);
+    ghostLayer = ghostWeek === null ? null : ghostLayerFor(week, ghostWeek);
 
     if (nowLayer) nowFigure.draw(nowLayer.sil);
     nowFigure.show(Boolean(nowLayer));
@@ -948,6 +1086,35 @@ export function render(ctx) {
   }
 
   /**
+   * Write the measurement chip.
+   *
+   * Through week 19 the number and the picture agree: the baby is curled, and
+   * crown-rump is measured on that curl — `"13.0 cm head to bottom"`, nothing
+   * to explain. From week 20 they stop agreeing, because the official number
+   * is taken with the legs pulled straight while the baby (and the drawing)
+   * stays folded. Rather than straighten the art to match the number, the pose
+   * is named as one more fact on the line: `"curled up · 20.2 in head to heel"`.
+   *
+   * One nowrap part either way — measured, the longest it ever gets is 217 px
+   * of the 257 px the line has beside the Life-size chip, so it renders on one
+   * line in both unit systems for every week 4–42, and the band under the
+   * picture stays exactly two lines tall.
+   * @param {import('../lib/types.js').WeekSize} row This week's measurements.
+   * @param {import('../lib/types.js').UnitSystem} units
+   * @returns {void}
+   */
+  function paintLength(row, units) {
+    const len = formatLength(row.lengthMm, units);
+    const label = basisLabel(row.basis);
+    const curled = row.basis === 'crown-heel' ? `${CURLED_LEAD} · ` : '';
+    lenChunk.textContent = '';
+    lenChunk.append(el('span', { class: 'size-line__part' }, `${curled}${len} ${label}`));
+  }
+
+  /** True while a follow-up relayout is already scheduled. @see relayout */
+  let resettling = false;
+
+  /**
    * Apply the fit: one uniform factor for both layers, so the ghost stays a
    * true comparison, and the badge that tells the user what they're looking at.
    * @returns {void}
@@ -956,7 +1123,7 @@ export function render(ctx) {
     /* Off-document (the first paint happens before main.js mounts us) there is
        nothing honest to measure, so wait rather than guess. */
     if (!nowLayer || !screen.isConnected) return;
-    const { availH, availW, frameY } = measureAvailable();
+    const { availH, availW, frameY, topReserve } = measureAvailable();
 
     /* The percentage on the badge is a promise about the baby, so the fit is
        measured against the baby alone — and the ghost, nested inside it, asks
@@ -1009,7 +1176,11 @@ export function render(ctx) {
     if (small) canvas.style.setProperty('--halo', `${Math.round(contentH)}px`);
 
     stage.classList.toggle('size-stage--life', life);
-    scroller.style.height = `${Math.round(stageH)}px`;
+    /* The scroller carries the badge's band as padding, so its box is the
+       reserve plus the room the picture may use. Life-size scrolls that
+       padding with the content, which is what keeps the crown clear of the
+       badge at rest — the one place the mode promises to start from. */
+    scroller.style.height = `${Math.round(stageH + topReserve)}px`;
 
     /* In life-size there is no ghost to point at. */
     scrub.setHint(hintFor(life ? null : ghostWeek));
@@ -1025,7 +1196,6 @@ export function render(ctx) {
 
     const nickname = (ctx.settings.nickname ?? '').trim();
     const trueSize = nickname ? `${nickname}, actual size` : 'Actual size';
-    const toHeel = footMark.textContent === 'heel' ? 'head to heel' : 'head to bottom';
 
     /* Outgrowing the screen is one of the few genuine milestones this app can
        mark, so the week it happens says so — on a cold open of that week too,
@@ -1056,7 +1226,10 @@ export function render(ctx) {
         setBadge('true', [CALIBRATE_LEAD, calibrateWord()]);
       }
     } else if (life) {
-      setBadge('true', `Actual size — scroll ${toHeel}`);
+      /* What the scroll traverses is the drawing, and the drawing is a curl —
+         so this is "head to bottom" in every week, including the ones whose
+         stat is quoted head to heel. */
+      setBadge('true', `Actual size — scroll ${LIFE_SCROLL_SPAN}`);
     } else if (justOutgrew) {
       /* Neutral tone, because the render is scaled — the celebration is in the
          words, not in a colour that means "this is true size". */
@@ -1086,7 +1259,20 @@ export function render(ctx) {
     );
 
     canvas.classList.add('size-canvas--ready');
+
+    /* The badge was written *after* the band it lives in was measured, so a
+       sentence that wraps to a second line ("There you go — this is …") would
+       otherwise overhang the crown until the next relayout. One follow-up
+       frame, guarded so it can never chase itself. */
+    if (!resettling && Math.abs(topReserveFor() - topReserve) > 1) {
+      resettling = true;
+      requestAnimationFrame(() => {
+        resettling = false;
+        if (screen.isConnected) relayout();
+      });
+    }
   }
+
 
   /** @type {ReturnType<typeof setTimeout>|null} */
   let revealTimer = null;
@@ -1211,26 +1397,30 @@ export function render(ctx) {
   /**
    * The earlier week to nest inside this one, or `null` when none qualifies.
    *
-   * It must be measured by the same ruler (crown-rump and crown-heel compare
-   * nothing — that is a hard stop) and be small enough that the growth ring is
-   * a shape rather than a hairline. Crossing into an earlier stage's art is
-   * allowed: each layer is drawn from its own silhouette at its own true-size
-   * scale, so the comparison stays honest, and refusing it left every week
-   * from 20 to 42 with nothing to see — a third of a pregnancy where dragging
-   * the scrubber animated a number and nothing else. The walk stops ten weeks
-   * back so the caption still means something.
+   * The comparison is between what the two weeks *draw*, not between what they
+   * quote. That distinction is the whole reason this can now cross the week
+   * 19 → 20 ruler change: both layers are scaled by their own art's
+   * `spanFraction` to the room the curled baby really takes up, so a week-19
+   * contour inside a week-20 figure compares two true sizes even though one
+   * number is crown-rump and the other crown-heel. Comparing the quoted
+   * millimetres instead made 153 mm look 40% smaller than 256 mm overnight —
+   * which is a fact about rulers, not about babies — so the old rule refused
+   * the boundary outright and left weeks 20–22 with no ghost at all, three
+   * weeks where dragging the scrubber animated a number and nothing else.
+   *
+   * The earlier week must still be small enough that the growth ring is a
+   * shape rather than a hairline, and the walk stops ten weeks back so the
+   * caption still means something.
    * @param {number} week
    * @returns {number|null}
    */
   function ghostWeekFor(week) {
-    const now = SIZE_TABLE[week];
-    const sil = silhouetteForWeek(week);
-    if (!now || !sil) return null;
+    const now = layerFor(week);
+    if (!now) return null;
     for (let w = week - 1; w >= Math.max(MIN_CONTENT_WEEK, week - 10); w -= 1) {
-      const before = SIZE_TABLE[w];
-      if (!before || before.basis !== now.basis) return null;
-      if (!silhouetteForWeek(w)) continue;
-      if (before.lengthMm / now.lengthMm <= GHOST_MAX_RATIO) return w;
+      const before = layerFor(w);
+      if (!before) continue;
+      if (before.bodyH / now.bodyH <= GHOST_MAX_RATIO) return w;
     }
     return null;
   }

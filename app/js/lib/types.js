@@ -82,15 +82,26 @@
  */
 
 /**
- * One scalable baby outline. `path` is a single closed SVG path, head at top,
- * expressed in `viewBox` units. `heelY` is required for any silhouette that
- * covers weeks >= 20 (crown-heel measurement basis).
+ * One scalable baby outline, drawn in a natural curled pose. `path` is a single
+ * closed SVG path, head at top, expressed in `viewBox` units.
+ *
+ * `crownY`, `rumpY` and `lowestY` are read off the drawn curve: top of the
+ * head, bottom of the rump, and the lowest point of the whole figure (often the
+ * rump itself, sometimes a tucked heel or an embryonic tail).
+ *
+ * `spanFraction` is what keeps "actual size" true for a curled drawing: the
+ * fraction of the week's *official* length that the drawn `crownY → lowestY`
+ * span represents. ~1.0 while weeks are reported crown-rump (the curl is what
+ * that measurement describes); ~0.66–0.71 once they are reported crown-heel
+ * stretched, because a curled fetus occupies about that much of its stretched
+ * length.
  * @typedef {{ id: string, minWeek: number, maxWeek: number,
  *   viewBox: { w: number, h: number },
  *   path: string,
  *   crownY: number,
  *   rumpY: number,
- *   heelY: number|null }} Silhouette
+ *   lowestY: number,
+ *   spanFraction: number }} Silhouette
  */
 
 /**
